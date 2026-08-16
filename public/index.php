@@ -2,55 +2,45 @@
 
 declare(strict_types=1);
 
-// --- Valeurs d'entrée (en dur) ---
+require __DIR__ . '/../vendor/autoload.php';
 
-/** Nom du modèle étudié. */
-const MODEL_NAME = 'Llama 3.1 70B';
+use LlmCarbon\EmissionFactor;
+use LlmCarbon\FootprintCalculator;
+use LlmCarbon\LanguageModel;
 
-/** Nombre de paramètres actifs du modèle, en milliards. */
-const ACTIVE_PARAMETERS_BILLIONS = 70;
+// --- Scénario étudié (en dur) ---
 
-/** Nombre de tokens générés par la requête. */
-const GENERATED_TOKENS = 500;
+$modele = new LanguageModel(
+    'Llama 3.1 70B',
+    70,
+    'https://ai.meta.com/blog/meta-llama-3-1/'
+);
 
-// --- Constantes de la méthodologie EcoLogits ---
+$tokensGeneres = 500;
 
-/**
- * Coefficient multiplicatif (pente) reliant les paramètres actifs (en
- * milliards) à l'énergie GPU consommée par token généré, en Wh.
- * Source : https://ecologits.ai/latest/methodology/energy/
- */
-const ECOLOGITS_ENERGY_ALPHA = 8.91e-5;
+$calculateur = new FootprintCalculator();
 
-/**
- * Terme constant (ordonnée à l'origine) de l'énergie GPU consommée par
- * token généré, en Wh.
- * Source : https://ecologits.ai/latest/methodology/energy/
- */
-const ECOLOGITS_ENERGY_BETA = 1.43e-3;
+// --- Empreinte pour l'hébergement en France (scénario de référence) ---
 
-/**
- * PUE (Power Usage Effectiveness) moyen retenu par EcoLogits pour les
- * centres de données des fournisseurs de services d'IA.
- * Source : https://ecologits.ai/latest/methodology/energy/
- */
-const DATACENTER_PUE = 1.2;
+$facteurFrance = EmissionFactor::france();
+$empreinteFrance = $calculateur->calculate($modele, $facteurFrance, $tokensGeneres);
 
-/**
- * Facteur d'émission du mix électrique français, en gCO2eq par kWh.
- * Source : https://base-empreinte.ademe.fr/ (Base Empreinte ADEME,
- * facteur d'émission de l'électricité consommée en France), tel que
- * repris par la méthodologie EcoLogits.
- */
-const FRANCE_GRID_EMISSION_FACTOR = 81.3;
+// --- Comparaison par zone d'hébergement, à énergie identique ---
 
-// --- Calculs ---
+$facteursParZone = [
+    EmissionFactor::france(),
+    EmissionFactor::europe(),
+    EmissionFactor::etatsUnis(),
+    EmissionFactor::monde(),
+];
 
-$energyPerTokenWh = ECOLOGITS_ENERGY_ALPHA * ACTIVE_PARAMETERS_BILLIONS + ECOLOGITS_ENERGY_BETA;
-
-$totalEnergyWh = $energyPerTokenWh * GENERATED_TOKENS * DATACENTER_PUE;
-
-$emissionsGco2eq = ($totalEnergyWh / 1000) * FRANCE_GRID_EMISSION_FACTOR;
+$empreintesParZone = [];
+foreach ($facteursParZone as $facteur) {
+    $empreintesParZone[] = [
+        'facteur' => $facteur,
+        'empreinte' => $calculateur->calculate($modele, $facteur, $tokensGeneres),
+    ];
+}
 
 ?>
 <!DOCTYPE html>
@@ -68,6 +58,7 @@ $emissionsGco2eq = ($totalEnergyWh / 1000) * FRANCE_GRID_EMISSION_FACTOR;
             color: #1a1a1a;
         }
         h1 { font-size: 1.4rem; }
+        h2.section { font-size: 1.1rem; margin-top: 2.5rem; }
         table {
             border-collapse: collapse;
             width: 100%;
@@ -116,13 +107,14 @@ $emissionsGco2eq = ($totalEnergyWh / 1000) * FRANCE_GRID_EMISSION_FACTOR;
     <h1>Empreinte carbone d'une requête à un modèle de langage</h1>
 
     <table>
-        <tr><th>Modèle</th><td><?= htmlspecialchars(MODEL_NAME) ?></td></tr>
-        <tr><th>Paramètres actifs</th><td><?= ACTIVE_PARAMETERS_BILLIONS ?> milliards</td></tr>
-        <tr><th>Tokens générés</th><td><?= GENERATED_TOKENS ?></td></tr>
+        <tr><th>Modèle</th><td><?= htmlspecialchars($modele->nom) ?></td></tr>
+        <tr><th>Paramètres actifs</th><td><?= $modele->parametresActifsMilliards ?> milliards</td></tr>
+        <tr><th>Tokens générés</th><td><?= $tokensGeneres ?></td></tr>
+        <tr><th>Zone d'hébergement</th><td><?= htmlspecialchars($facteurFrance->zone) ?></td></tr>
     </table>
 
-    <p class="result">Énergie consommée : <?= number_format($totalEnergyWh, 4, ',', ' ') ?> Wh</p>
-    <p class="result">Émissions estimées : <?= number_format($emissionsGco2eq, 4, ',', ' ') ?> gCO2eq</p>
+    <p class="result">Énergie consommée : <?= number_format($empreinteFrance->energieTotaleWh, 4, ',', ' ') ?> Wh</p>
+    <p class="result">Émissions estimées : <?= number_format($empreinteFrance->emissionsGco2eq, 4, ',', ' ') ?> gCO2eq</p>
 
     <div class="details">
         <h2>Détail du calcul</h2>
@@ -130,32 +122,53 @@ $emissionsGco2eq = ($totalEnergyWh / 1000) * FRANCE_GRID_EMISSION_FACTOR;
             <li>
                 Énergie GPU par token généré (régression EcoLogits) :
                 <code>
-                    <?= ECOLOGITS_ENERGY_ALPHA ?> × <?= ACTIVE_PARAMETERS_BILLIONS ?> + <?= ECOLOGITS_ENERGY_BETA ?>
-                    = <?= number_format($energyPerTokenWh, 8, ',', ' ') ?> Wh/token
+                    <?= number_format($empreinteFrance->energieParTokenWh, 8, ',', ' ') ?> Wh/token
                 </code>
             </li>
             <li>
                 Énergie totale, en tenant compte du PUE du datacenter :
                 <code>
-                    <?= number_format($energyPerTokenWh, 8, ',', ' ') ?> × <?= GENERATED_TOKENS ?> × <?= DATACENTER_PUE ?>
-                    = <?= number_format($totalEnergyWh, 4, ',', ' ') ?> Wh
+                    <?= number_format($empreinteFrance->energieParTokenWh, 8, ',', ' ') ?> × <?= $tokensGeneres ?>
+                    = <?= number_format($empreinteFrance->energieTotaleWh, 4, ',', ' ') ?> Wh
                 </code>
             </li>
             <li>
-                Émissions de CO2eq, avec le facteur d'émission du mix électrique français :
+                Émissions de CO2eq, avec le facteur d'émission du mix électrique de la zone
+                d'hébergement (<?= htmlspecialchars($facteurFrance->zone) ?>, <?= $facteurFrance->gCo2eqParKwh ?> gCO2eq/kWh) :
                 <code>
-                    (<?= number_format($totalEnergyWh, 4, ',', ' ') ?> / 1000) × <?= FRANCE_GRID_EMISSION_FACTOR ?>
-                    = <?= number_format($emissionsGco2eq, 4, ',', ' ') ?> gCO2eq
+                    (<?= number_format($empreinteFrance->energieTotaleWh, 4, ',', ' ') ?> / 1000) × <?= $facteurFrance->gCo2eqParKwh ?>
+                    = <?= number_format($empreinteFrance->emissionsGco2eq, 4, ',', ' ') ?> gCO2eq
                 </code>
             </li>
         </ol>
     </div>
 
+    <h2 class="section">Comparaison par zone d'hébergement, à énergie identique</h2>
+    <table>
+        <tr>
+            <th>Zone</th>
+            <th>Facteur d'émission</th>
+            <th>Énergie</th>
+            <th>Émissions</th>
+        </tr>
+        <?php foreach ($empreintesParZone as $ligne): ?>
+        <tr>
+            <td><?= htmlspecialchars($ligne['facteur']->zone) ?></td>
+            <td><?= number_format($ligne['facteur']->gCo2eqParKwh, 2, ',', ' ') ?> gCO2eq/kWh</td>
+            <td><?= number_format($ligne['empreinte']->energieTotaleWh, 4, ',', ' ') ?> Wh</td>
+            <td><?= number_format($ligne['empreinte']->emissionsGco2eq, 4, ',', ' ') ?> gCO2eq</td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
+
     <footer>
         <p>Méthodologie et sources :</p>
         <ul>
             <li><a href="https://ecologits.ai/latest/methodology/energy/">EcoLogits — méthodologie d'estimation de l'énergie</a></li>
-            <li><a href="https://base-empreinte.ademe.fr/">ADEME Base Empreinte — facteur d'émission du mix électrique français</a></li>
+            <li><a href="<?= htmlspecialchars($modele->urlSource) ?>">Source du modèle : <?= htmlspecialchars($modele->nom) ?></a></li>
+            <?php foreach ($empreintesParZone as $ligne): ?>
+            <li><a href="<?= htmlspecialchars($ligne['facteur']->urlSource) ?>">Source du facteur d'émission : <?= htmlspecialchars($ligne['facteur']->zone) ?></a></li>
+            <?php endforeach; ?>
         </ul>
     </footer>
 </body>
