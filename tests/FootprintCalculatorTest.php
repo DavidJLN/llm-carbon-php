@@ -15,7 +15,7 @@ final class FootprintCalculatorTest extends TestCase
 {
     private function llama70b(): LanguageModel
     {
-        return new LanguageModel('Llama 3.1 70B', 70.0, 'https://example.org');
+        return LanguageModel::llama31_70b();
     }
 
     public function testLeCasDeReferenceNeBougePas(): void
@@ -49,6 +49,17 @@ final class FootprintCalculatorTest extends TestCase
 
         self::assertEqualsWithDelta(4.6002, $empreinte->energieTotaleWh, 0.0001);
         self::assertEqualsWithDelta($emissionsAttenduesGco2eq, $empreinte->emissionsGco2eq, 0.0001);
+    }
+
+    public function testGpt4DonneLesValeursAttendues(): void
+    {
+        $empreinte = (new FootprintCalculator())
+            ->calculate(LanguageModel::gpt4(), EmissionFactor::france(), 500);
+
+        // Verrouille les 176 milliards de paramètres actifs de gpt4() : un changement de cette
+        // valeur (ou des coefficients EcoLogits) doit faire échouer ce test.
+        self::assertEqualsWithDelta(10.2670, $empreinte->energieTotaleWh, 0.0001);
+        self::assertEqualsWithDelta(0.8347, $empreinte->emissionsGco2eq, 0.0001);
     }
 
     public function testZeroTokenGenereLevePuisException(): void

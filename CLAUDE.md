@@ -28,9 +28,23 @@ Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de li
 - `composer.json` — déclare le nom du paquet, la licence MIT, la contrainte `php >= 8.1` et
   l'autoload PSR-4 (`LlmCarbon\` → `src/`).
 - `public/index.php` — point d'entrée HTTP : instancie le scénario (`LanguageModel`,
-  `EmissionFactor`), appelle `FootprintCalculator`, puis affiche les résultats et le tableau comparatif. Ne contient plus aucun calcul.
-- `src/LanguageModel.php` — objet-valeur `readonly` : nom du modèle, paramètres actifs (en milliards), URL de la source des paramètres.
-- `src/EmissionFactor.php` — objet-valeur `readonly` : zone géographique, facteur d'émission (gCO2eq/kWh), URL de la source ; expose les fabriques statiques `france()`, `europe()`, `etatsUnis()`, `monde()`.
+  `EmissionFactor`), appelle `FootprintCalculator`, puis affiche les résultats, le tableau
+  comparatif par zone et par modèle, et le détail de chaque provenance en pied de page. Ne
+  contient plus aucun calcul. Affiche un badge visuel (`badgeProvenance()`) distinguant une
+  provenance `Hypothese` d'une provenance `MesureeEtPubliee` partout où une valeur est montrée.
+- `src/ProvenanceType.php` — enum : nature d'une provenance, `MesureeEtPubliee` (la source publie la
+  valeur telle quelle) ou `Hypothese` (valeur reconstituée faute de donnée publiée).
+- `src/Provenance.php` — objet-valeur `readonly` portant la provenance d'une valeur numérique :
+  son `type` (`ProvenanceType`), l'`url` de la source, le `millesimeOuDateDeConsultation` et une
+  `note` disant ce que la source affirme exactement. Les quatre champs sont obligatoires et non
+  nullables (le constructeur lève si l'un d'eux est vide) : une valeur ne peut pas être construite
+  sans provenance complète.
+- `src/LanguageModel.php` — objet-valeur `readonly` : nom du modèle, paramètres actifs (en
+  milliards), `Provenance` ; expose les fabriques statiques `llama31_70b()`, `gpt4()` (modèle
+  propriétaire, provenance de type `Hypothese`), et `toutes()`.
+- `src/EmissionFactor.php` — objet-valeur `readonly` : zone géographique, facteur d'émission
+  (gCO2eq/kWh), `Provenance` ; expose les fabriques statiques `france()`, `europe()`,
+  `etatsUnis()`, `monde()`, et `toutes()`.
 - `src/Footprint.php` — objet-valeur `readonly` : résultat du calcul (énergie par token, énergie totale, émissions).
 - `src/FootprintCalculator.php` — seule classe portant les coefficients de la méthodologie EcoLogits (alpha, beta, PUE) ; sa méthode `calculate()` combine un `LanguageModel` et un `EmissionFactor` en un `Footprint`.
 - `README.md` — documente l'usage, la méthodologie EcoLogits pas à pas, les sources et les limites connues du calcul.
@@ -38,15 +52,41 @@ Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de li
 
 ## Règle primordiale : aucun chiffre sans source vérifiable
 
-Toute constante numérique utilisée dans le calcul (paramètres de la régression EcoLogits, PUE, facteurs d'émission par zone, paramètres actifs d'un modèle, etc.) **doit** être accompagnée, dans le code, d'un commentaire ou docblock citant sa source précise (URL, document, méthodologie). C'est déjà le cas pour toutes les constantes actuelles (`FootprintCalculator`, fabriques d'`EmissionFactor`, instanciation de `LanguageModel` dans `public/index.php`) — ce standard doit être maintenu pour toute
-constante ajoutée ou modifiée, y compris pour tout nouveau modèle ou toute nouvelle zone géographique.
+Toute constante numérique utilisée dans le calcul (paramètres de la régression EcoLogits, PUE, facteurs d'émission par zone, paramètres actifs d'un modèle, etc.) **doit** citer sa source précise (URL, document, méthodologie), son millésime ou sa date de consultation, et une note disant ce que la source affirme exactement.
+
+Pour `EmissionFactor` et `LanguageModel`, cette règle n'est plus seulement une convention de
+commentaire : elle est portée par le type. Les deux classes exigent un objet `Provenance`
+(`src/Provenance.php`) en paramètre obligatoire, non nullable, de leur constructeur — il est donc
+impossible de compiler une instance sans provenance. `Provenance` porte quatre champs
+obligatoires : `type` (`ProvenanceType::MesureeEtPubliee` ou `ProvenanceType::Hypothese`), `url`,
+`millesimeOuDateDeConsultation`, `note`. **Ne jamais introduire un second champ de source** (par
+exemple un `urlSource` séparé) à côté de `Provenance` sur ces deux classes : deux sources de
+vérité pour la même chose finissent toujours par diverger — une seule provenance par valeur.
+
+Pour les coefficients privés de `FootprintCalculator` (alpha, beta, PUE), qui ne sont pas des
+objets-valeurs construits depuis l'extérieur, le commentaire/docblock citant la source reste la
+convention à suivre.
+
+**Mesure ou hypothèse — jamais l'inverse :**
+- `ProvenanceType::MesureeEtPubliee` : la source publie la valeur telle quelle ; la note rappelle
+  ce qu'elle affirme.
+- `ProvenanceType::Hypothese` : la valeur n'est pas publiée par son propriétaire (typiquement un
+  modèle propriétaire dont les paramètres actifs sont secrets) et a été reconstituée à partir
+  d'indices indirects. Dans ce cas, la note **doit** expliquer pourquoi la donnée n'est pas
+  publiée et ce que vaudrait la borne haute de l'estimation (voir `LanguageModel::gpt4()` pour un
+  exemple).
+- L'affichage (`public/index.php`, fonction `badgeProvenance()`) **doit** distinguer visuellement
+  une hypothèse d'une mesure partout où la valeur apparaît (badge « ⚠ Hypothèse » vs « ✓ Mesuré et
+  publié »). Une hypothèse qui se présente visuellement comme une mesure est le défaut à corriger
+  en priorité si on le rencontre.
 
 **Conséquences si cette règle n'est pas respectée :**
 - Un chiffre affiché sans source vérifiable rend l'estimation invérifiable et donc non crédible : l'utilisateur ne peut plus distinguer une donnée issue d'une méthodologie reconnue d'un chiffre inventé ou approximatif.
 - Cela expose le projet à diffuser une désinformation chiffrée sur l'impact environnemental des LLM, un sujet sensible où l'exactitude et la traçabilité des sources sont la seule légitimité du projet.
 - Une constante non sourcée ne peut pas être mise à jour correctement si la méthodologie évolue, car son origine est perdue.
+- Une hypothèse affichée comme une mesure trompe l'utilisateur sur la fiabilité du chiffre qu'il lit.
 
-En conséquence : ne jamais ajouter, modifier ou approximer une constante numérique liée au calcul sans citer sa source exacte, et ne jamais remplacer une source par une valeur « raisonnable » ou estimée à la main.
+En conséquence : ne jamais ajouter, modifier ou approximer une constante numérique liée au calcul sans citer sa source exacte, et ne jamais remplacer une source par une valeur « raisonnable » ou estimée à la main — sauf hypothèse explicitement typée `ProvenanceType::Hypothese`, justifiée et bornée comme décrit ci-dessus.
 
 ## Interdits absolus
 

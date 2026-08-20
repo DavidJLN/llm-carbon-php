@@ -7,14 +7,37 @@ require __DIR__ . '/../vendor/autoload.php';
 use LlmCarbon\EmissionFactor;
 use LlmCarbon\FootprintCalculator;
 use LlmCarbon\LanguageModel;
+use LlmCarbon\Provenance;
+use LlmCarbon\ProvenanceType;
+
+/**
+ * Badge visuel distinguant une provenance mesurée/publiée (fiable telle quelle) d'une hypothèse
+ * (estimation faute de donnée publiée) : une hypothèse ne doit jamais se confondre visuellement
+ * avec une mesure.
+ */
+function badgeProvenance(Provenance $provenance): string
+{
+    if ($provenance->type === ProvenanceType::Hypothese) {
+        return '<span class="badge badge-hypothese">⚠ Hypothèse</span>';
+    }
+
+    return '<span class="badge badge-mesure">✓ Mesuré et publié</span>';
+}
+
+function detailProvenance(string $intitule, Provenance $provenance): string
+{
+    return '<li>'
+        . '<strong>' . htmlspecialchars($intitule) . '</strong> '
+        . badgeProvenance($provenance)
+        . '<br><a href="' . htmlspecialchars($provenance->url) . '">' . htmlspecialchars($provenance->url) . '</a>'
+        . ' — ' . htmlspecialchars($provenance->millesimeOuDateDeConsultation)
+        . '<br><span class="note">' . htmlspecialchars($provenance->note) . '</span>'
+        . '</li>';
+}
 
 // --- Scénario étudié (en dur) ---
 
-$modele = new LanguageModel(
-    'Llama 3.1 70B',
-    70,
-    'https://ai.meta.com/blog/meta-llama-3-1/'
-);
+$modele = LanguageModel::llama31_70b();
 
 $tokensGeneres = 500;
 
@@ -27,18 +50,23 @@ $empreinteFrance = $calculateur->calculate($modele, $facteurFrance, $tokensGener
 
 // --- Comparaison par zone d'hébergement, à énergie identique ---
 
-$facteursParZone = [
-    EmissionFactor::france(),
-    EmissionFactor::europe(),
-    EmissionFactor::etatsUnis(),
-    EmissionFactor::monde(),
-];
+$facteursParZone = EmissionFactor::toutes();
 
 $empreintesParZone = [];
 foreach ($facteursParZone as $facteur) {
     $empreintesParZone[] = [
         'facteur' => $facteur,
         'empreinte' => $calculateur->calculate($modele, $facteur, $tokensGeneres),
+    ];
+}
+
+// --- Comparaison par modèle, à zone d'hébergement identique (France) ---
+
+$empreintesParModele = [];
+foreach (LanguageModel::toutes() as $modeleCatalogue) {
+    $empreintesParModele[] = [
+        'modele' => $modeleCatalogue,
+        'empreinte' => $calculateur->calculate($modeleCatalogue, $facteurFrance, $tokensGeneres),
     ];
 }
 
@@ -101,6 +129,32 @@ foreach ($facteursParZone as $facteur) {
             font-family: ui-monospace, Menlo, monospace;
             color: #333;
         }
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+        }
+        .badge-mesure {
+            color: #1a7a3c;
+            background: #e6f4ea;
+            border-color: #b6e0c2;
+        }
+        .badge-hypothese {
+            color: #9a5b00;
+            background: #fff3e0;
+            border-color: #f0c98a;
+        }
+        .sources li {
+            margin-bottom: 1rem;
+        }
+        .sources .note {
+            display: block;
+            margin-top: 0.15rem;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -108,7 +162,10 @@ foreach ($facteursParZone as $facteur) {
 
     <table>
         <tr><th>Modèle</th><td><?= htmlspecialchars($modele->nom) ?></td></tr>
-        <tr><th>Paramètres actifs</th><td><?= $modele->parametresActifsMilliards ?> milliards</td></tr>
+        <tr>
+            <th>Paramètres actifs</th>
+            <td><?= $modele->parametresActifsMilliards ?> milliards <?= badgeProvenance($modele->provenance) ?></td>
+        </tr>
         <tr><th>Tokens générés</th><td><?= $tokensGeneres ?></td></tr>
         <tr><th>Zone d'hébergement</th><td><?= htmlspecialchars($facteurFrance->zone) ?></td></tr>
     </table>
@@ -154,7 +211,31 @@ foreach ($facteursParZone as $facteur) {
         <?php foreach ($empreintesParZone as $ligne): ?>
         <tr>
             <td><?= htmlspecialchars($ligne['facteur']->zone) ?></td>
-            <td><?= number_format($ligne['facteur']->gCo2eqParKwh, 2, ',', ' ') ?> gCO2eq/kWh</td>
+            <td>
+                <?= number_format($ligne['facteur']->gCo2eqParKwh, 2, ',', ' ') ?> gCO2eq/kWh
+                <?= badgeProvenance($ligne['facteur']->provenance) ?>
+            </td>
+            <td><?= number_format($ligne['empreinte']->energieTotaleWh, 4, ',', ' ') ?> Wh</td>
+            <td><?= number_format($ligne['empreinte']->emissionsGco2eq, 4, ',', ' ') ?> gCO2eq</td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
+
+    <h2 class="section">Comparaison par modèle, à zone d'hébergement identique (France)</h2>
+    <table>
+        <tr>
+            <th>Modèle</th>
+            <th>Paramètres actifs</th>
+            <th>Énergie</th>
+            <th>Émissions</th>
+        </tr>
+        <?php foreach ($empreintesParModele as $ligne): ?>
+        <tr>
+            <td><?= htmlspecialchars($ligne['modele']->nom) ?></td>
+            <td>
+                <?= $ligne['modele']->parametresActifsMilliards ?> milliards
+                <?= badgeProvenance($ligne['modele']->provenance) ?>
+            </td>
             <td><?= number_format($ligne['empreinte']->energieTotaleWh, 4, ',', ' ') ?> Wh</td>
             <td><?= number_format($ligne['empreinte']->emissionsGco2eq, 4, ',', ' ') ?> gCO2eq</td>
         </tr>
@@ -163,11 +244,13 @@ foreach ($facteursParZone as $facteur) {
 
     <footer>
         <p>Méthodologie et sources :</p>
-        <ul>
+        <ul class="sources">
             <li><a href="https://ecologits.ai/latest/methodology/energy/">EcoLogits — méthodologie d'estimation de l'énergie</a></li>
-            <li><a href="<?= htmlspecialchars($modele->urlSource) ?>">Source du modèle : <?= htmlspecialchars($modele->nom) ?></a></li>
-            <?php foreach ($empreintesParZone as $ligne): ?>
-            <li><a href="<?= htmlspecialchars($ligne['facteur']->urlSource) ?>">Source du facteur d'émission : <?= htmlspecialchars($ligne['facteur']->zone) ?></a></li>
+            <?php foreach (LanguageModel::toutes() as $modeleCatalogue): ?>
+            <?= detailProvenance('Modèle : ' . $modeleCatalogue->nom, $modeleCatalogue->provenance) ?>
+            <?php endforeach; ?>
+            <?php foreach ($facteursParZone as $facteur): ?>
+            <?= detailProvenance("Facteur d'émission : " . $facteur->zone, $facteur->provenance) ?>
             <?php endforeach; ?>
         </ul>
     </footer>
