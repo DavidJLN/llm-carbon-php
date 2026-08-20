@@ -18,6 +18,7 @@ Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travaill
 ## Commandes disponibles
 
 - `composer dump-autoload` — à effectuer après toute création de classe.
+- `vendor/bin/phpunit tests` - à effectuer avant de déclarer qu'une modification est finie
 - `php -S localhost:8000 -t public` — lance le serveur de développement intégré de PHP et sert le dossier `public/` ; ouvrir ensuite http://localhost:8000 dans un navigateur.
 
 Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de linter, pas de suite de tests).

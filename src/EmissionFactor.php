@@ -73,4 +73,20 @@ final class EmissionFactor
             'https://github.com/Boavizta/boaviztapi/blob/main/boaviztapi/data/crowdsourcing/electrical_mix.csv'
         );
     }
+
+    /**
+     * Toutes les zones géographiques disponibles, pour affichage comparatif ou vérification
+     * (par exemple : chaque zone doit citer une source).
+     *
+     * @return list<self>
+     */
+    public static function toutes(): array
+    {
+        return [
+            self::france(),
+            self::europe(),
+            self::etatsUnis(),
+            self::monde(),
+        ];
+    }
 }

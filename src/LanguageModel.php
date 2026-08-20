@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LlmCarbon;
 
+use InvalidArgumentException;
+
 /**
  * Modèle de langage étudié : son nombre de paramètres actifs détermine, via
  * FootprintCalculator, l'énergie GPU consommée par token généré.
@@ -15,5 +17,10 @@ final class LanguageModel
         public readonly float $parametresActifsMilliards,
         public readonly string $urlSource,
     ) {
+        if ($this->parametresActifsMilliards <= 0) {
+            throw new InvalidArgumentException(
+                'Le nombre de paramètres actifs (en milliards) doit être strictement positif.'
+            );
+        }
     }
 }

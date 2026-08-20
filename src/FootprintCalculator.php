@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LlmCarbon;
 
+use InvalidArgumentException;
+
 /**
  * Implémente la méthodologie EcoLogits d'estimation de l'énergie et des émissions d'une requête
  * LLM. Seule cette classe porte les coefficients de la méthodologie.
@@ -34,6 +36,10 @@ final class FootprintCalculator
 
     public function calculate(LanguageModel $languageModel, EmissionFactor $emissionFactor, int $tokensGeneres): Footprint
     {
+        if ($tokensGeneres <= 0) {
+            throw new InvalidArgumentException('Le nombre de tokens générés doit être strictement positif.');
+        }
+
         $energieParTokenWh = self::ECOLOGITS_ENERGIE_ALPHA * $languageModel->parametresActifsMilliards
             + self::ECOLOGITS_ENERGIE_BETA;
 
