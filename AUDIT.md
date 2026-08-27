@@ -32,6 +32,12 @@ Aucune source ni commentaire ne justifie 590,4 plutôt que 590,5.
 **Verdict :** RETENU — bug d'arrondi confirmé, sans justification trouvée nulle part dans le code
 ou les sources citées.
 
+**Statut (2026-08-27) :** CORRIGÉ. `EmissionFactor::monde()` retourne désormais `590.5` ; le
+docblock explicite la règle d'arrondi (le chiffre 7 après la virgule fait remonter le 4 en 5). Le
+test qui verrouillait la valeur fausse (constat 2) a été corrigé dans la foulée :
+`tests/FootprintCalculatorSimplifieTest.php` attend maintenant 2,7164 gCO2eq (au lieu de 2,7160)
+pour Llama 3.1 70B / Monde / 500 tokens ; `tests/EmissionFactorTest.php` attend 590,5.
+
 ---
 
 ## 2. Le test de la zone « Monde » verrouille la valeur fausse
@@ -78,6 +84,17 @@ du maintien volontaire sur une ancienne version d'EcoLogits. Aucune trouvée.
 
 **Verdict :** RETENU — lien mort et formule non traçable à une version citée, en violation directe
 de la règle CLAUDE.md « aucun chiffre sans source vérifiable ».
+
+**Statut (2026-08-27) :** CORRIGÉ (avant cet audit d'ailleurs formalisé, lors de l'implémentation du
+modèle complet EcoLogits). `src/FootprintCalculator.php` a été renommé
+`src/FootprintCalculatorSimplifie.php` et ses coefficients citent désormais l'URL pinnée sur le tag
+`0.4.0` (`https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md`, plus le
+fichier `.py` de la même version pour les valeurs exactes), suivant le même principe de version
+figée que `EmissionFactor::france()`. Ce projet assume désormais explicitement de suivre
+EcoLogits v0.4.0 plutôt que la méthodologie la plus récente (qui a changé de forme, cf.
+`docs/methodology/llm_inference.md` actuel avec un terme de batch size absent d'ici) : ce choix de
+version est documenté dans `README.md` (section Méthodologie) et dans chaque docblock de
+coefficient.
 
 ---
 
@@ -156,6 +173,15 @@ pas une reformulation abusive de l'audit) et cherché une mention de cette simpl
 
 **Verdict :** RETENU — qualification incorrecte confirmée mot pour mot contre la source citée, et
 appliquée hors de son contexte d'origine (Llama 3.1 70B).
+
+**Statut (2026-08-27) :** CORRIGÉ. Le mot « moyen » a été retiré des docblocks
+`PUE_DATACENTER` de `FootprintCalculatorSimplifie` et `FootprintCalculatorComplet` (et de la
+description de la méthodologie dans `README.md`), remplacé par une explicitation fidèle à la
+source v0.4.0 citée (valeur unique, non ventilée par fournisseur dans cette version) suivie d'un
+avertissement explicite : les versions plus récentes d'EcoLogits ventilent le PUE par fournisseur
+et montrent que 1,2 correspond spécifiquement à OpenAI/Azure, valeur appliquée ici uniformément y
+compris à des modèles non hébergés par OpenAI. `README.md` (section Limites) porte désormais cette
+même limite explicitement.
 
 ---
 
@@ -328,14 +354,14 @@ différente sans que les docblocks ou les tests ne le détectent.
 
 ## Résumé
 
-| # | Constat | Lentille | Verdict |
-|---|---|---|---|
-| 1 | Arrondi Monde 590,4 au lieu de 590,5 | Justesse | **Retenu** |
-| 2 | Test verrouille la valeur fausse | Fragilité | **Retenu** |
-| 3 | URL morte, formule périmée (v0.4 non versionnée) | Sources | **Retenu** |
-| 4 | Facteur nombre de GPU manquant | Justesse | **Retenu** |
-| 5 | Terme d'énergie serveur hors-GPU manquant | Justesse | **Retenu** |
-| 6 | PUE=1,2 qualifié à tort de « moyen » | Sources | **Retenu** |
+| # | Constat | Lentille | Verdict | Statut |
+|---|---|---|---|---|
+| 1 | Arrondi Monde 590,4 au lieu de 590,5 | Justesse | **Retenu** | Corrigé (2026-08-27) |
+| 2 | Test verrouille la valeur fausse | Fragilité | **Retenu** | Corrigé (2026-08-27, avec le 1) |
+| 3 | URL morte, formule périmée (v0.4 non versionnée) | Sources | **Retenu** | Corrigé (avant formalisation de l'audit) |
+| 4 | Facteur nombre de GPU manquant | Justesse | **Retenu** | Corrigé (modèle complet EcoLogits ajouté) |
+| 5 | Terme d'énergie serveur hors-GPU manquant | Justesse | **Retenu** | Corrigé (modèle complet EcoLogits ajouté) |
+| 6 | PUE=1,2 qualifié à tort de « moyen » | Sources | **Retenu** | Corrigé (2026-08-27) |
 | 7 | Badge if/else non exhaustif | Fragilité | Écarté |
 | 8 | Zéro test sur `public/index.php` | Fragilité | **Retenu** |
 | 9 | `Provenance` ne valide pas le contenu d'une Hypothese | Fragilité | **Retenu** |

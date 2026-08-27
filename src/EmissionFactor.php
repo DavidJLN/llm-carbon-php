@@ -82,14 +82,15 @@ final class EmissionFactor
 
     /**
      * Mix électrique mondial moyen, en gCO2eq par kWh.
-     * Valeur d'origine : 0,590478 kgCO2eq/kWh, soit 590,4 gCO2eq/kWh une fois convertie et
-     * arrondie à une décimale (précision de france()).
+     * Valeur d'origine : 0,590478 kgCO2eq/kWh, soit 590,5 gCO2eq/kWh une fois convertie et
+     * arrondie à une décimale (précision de france()) : le deuxième chiffre après la virgule (7)
+     * arrondit le premier (4) au-dessus, vers 590,5 — pas 590,4.
      */
     public static function monde(): self
     {
         return new self(
             'Monde',
-            590.4,
+            590.5,
             new Provenance(
                 ProvenanceType::MesureeEtPubliee,
                 'https://github.com/Boavizta/boaviztapi/blob/main/boaviztapi/data/crowdsourcing/electrical_mix.csv',

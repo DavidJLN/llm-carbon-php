@@ -68,7 +68,7 @@ final class EmissionFactorTest extends TestCase
         $facteur = EmissionFactor::monde();
 
         self::assertSame('Monde', $facteur->zone);
-        self::assertEqualsWithDelta(590.4, $facteur->gCo2eqParKwh, 0.0001);
+        self::assertEqualsWithDelta(590.5, $facteur->gCo2eqParKwh, 0.0001);
         self::assertSame(ProvenanceType::MesureeEtPubliee, $facteur->provenance->type);
     }
 

@@ -8,7 +8,7 @@ Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travaill
 
 ## Environnement technique
 
-- **PHP** : `>= 8.1` (déclaré dans `composer.json`), requis notamment pour les propriétés
+- **PHP** : `>= 8.4` (déclaré dans `composer.json`), requis notamment pour les propriétés
   `readonly` utilisées dans les classes de `src/`.
 - **Composer** : présent, mais uniquement pour l'autoloading. `composer.json` ne déclare aucune dépendance d'exécution — juste la contrainte de version PHP et le mapping PSR-4. Lancer `composer install` génère `vendor/autoload.php` sans rien télécharger.
 - **Espace de noms** : `LlmCarbon\`, mappé vers `src/` via PSR-4.
@@ -25,7 +25,7 @@ Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de li
 
 ## Architecture générale
 
-- `composer.json` — déclare le nom du paquet, la licence MIT, la contrainte `php >= 8.1` et
+- `composer.json` — déclare le nom du paquet, la licence MIT, la contrainte `php >= 8.4` et
   l'autoload PSR-4 (`LlmCarbon\` → `src/`).
 - `public/index.php` — point d'entrée HTTP : instancie le scénario (`LanguageModel`,
   `EmissionFactor`), appelle `FootprintCalculator`, puis affiche les résultats, le tableau
