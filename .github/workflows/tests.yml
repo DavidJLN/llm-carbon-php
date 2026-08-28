@@ -1,0 +1,82 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  matrix:
+    name: Déterminer la matrice de versions PHP
+    runs-on: ubuntu-latest
+    outputs:
+      php-versions: ${{ steps.matrix.outputs.php-versions }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Déduire la matrice depuis la contrainte composer.json (require.php)
+        id: matrix
+        run: |
+          set -e
+
+          CONSTRAINT=$(php -r 'echo json_decode(file_get_contents("composer.json"), true)["require"]["php"];')
+          echo "Contrainte déclarée dans composer.json : $CONSTRAINT"
+
+          # composer/semver n'est installé que dans cet outil éphémère, jamais dans
+          # composer.json du projet (aucune dépendance externe au projet lui-même).
+          mkdir -p /tmp/semver-tool
+          composer require --working-dir=/tmp/semver-tool --no-interaction --quiet composer/semver:^3.0
+
+          PHP_VERSIONS=$(php -r '
+              require "/tmp/semver-tool/vendor/autoload.php";
+              use Composer\Semver\Semver;
+
+              $constraint = $argv[1];
+              // Univers des versions PHP stables connues de ce workflow ; le filtrage par
+              // la contrainte ci-dessus décide seul lesquelles entrent dans la matrice.
+              $candidates = ["8.1", "8.2", "8.3", "8.4", "8.5"];
+              $matched = array_values(array_filter(
+                  $candidates,
+                  fn ($v) => Semver::satisfies($v, $constraint)
+              ));
+
+              if (empty($matched)) {
+                  fwrite(STDERR, "Aucune version PHP candidate ne satisfait la contrainte : $constraint\n");
+                  exit(1);
+              }
+
+              echo json_encode($matched);
+          ' "$CONSTRAINT")
+
+          echo "Versions retenues pour la matrice : $PHP_VERSIONS"
+          echo "php-versions=$PHP_VERSIONS" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: "PHP ${{ matrix.php-version }}"
+    needs: matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ${{ fromJson(needs.matrix.outputs.php-versions) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer
+          coverage: none
+
+      - name: Valider composer.json
+        run: composer validate --strict
+
+      - name: Installer les dépendances
+        run: composer install --prefer-dist --no-progress
+
+      - name: Exécuter la suite de tests
+        run: vendor/bin/phpunit
