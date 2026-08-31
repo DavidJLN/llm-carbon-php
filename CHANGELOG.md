@@ -9,7 +9,7 @@ Tant que la version majeure reste à `0`, l'interface publique (signatures des
 classes de `src/`) peut encore changer sans préavis — voir [la clause 4 de
 Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
 
-## [Unreleased]
+## [0.1.1] - 2026-08-31
 
 ### Changed
 
@@ -24,6 +24,7 @@ Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
   `ProvenanceType::MesureeEtPubliee`/`Hypothese` → `MeasuredAndPublished`/`Hypothesis`, etc.). Le
   texte affiché par `public/index.php` reste en français ; seuls les identifiants de code
   changent.
+- Ajoutde possibilité de switch de langage dans index.php (français, anglais, allemand)
 
 ## [0.1.0] - 2026-08-28
 
