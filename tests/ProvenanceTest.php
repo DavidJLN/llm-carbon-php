@@ -11,39 +11,39 @@ use PHPUnit\Framework\TestCase;
 
 final class ProvenanceTest extends TestCase
 {
-    public function testConstruitUneProvenanceAvecSesQuatreAttributs(): void
+    public function testBuildsAProvenanceWithItsFourAttributes(): void
     {
         $provenance = new Provenance(
-            ProvenanceType::MesureeEtPubliee,
+            ProvenanceType::MeasuredAndPublished,
             'https://example.org',
             '2024',
             'Ce que la source affirme exactement.'
         );
 
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $provenance->type);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $provenance->type);
         self::assertSame('https://example.org', $provenance->url);
-        self::assertSame('2024', $provenance->millesimeOuDateDeConsultation);
+        self::assertSame('2024', $provenance->yearOrConsultationDate);
         self::assertSame('Ce que la source affirme exactement.', $provenance->note);
     }
 
-    public function testUneUrlVideLevePuisException(): void
+    public function testAnEmptyUrlThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Provenance(ProvenanceType::MesureeEtPubliee, '   ', '2024', 'Note.');
+        new Provenance(ProvenanceType::MeasuredAndPublished, '   ', '2024', 'Note.');
     }
 
-    public function testUnMillesimeVideLevePuisException(): void
+    public function testAnEmptyYearThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Provenance(ProvenanceType::MesureeEtPubliee, 'https://example.org', '  ', 'Note.');
+        new Provenance(ProvenanceType::MeasuredAndPublished, 'https://example.org', '  ', 'Note.');
     }
 
-    public function testUneNoteVideLevePuisException(): void
+    public function testAnEmptyNoteThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Provenance(ProvenanceType::MesureeEtPubliee, 'https://example.org', '2024', '  ');
+        new Provenance(ProvenanceType::MeasuredAndPublished, 'https://example.org', '2024', '  ');
     }
 }

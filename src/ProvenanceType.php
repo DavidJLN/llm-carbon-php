@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace LlmCarbon;
 
 /**
- * Nature de la provenance d'une valeur numérique.
+ * Nature of the provenance of a numeric value.
  *
- * MesureeEtPubliee : la source publie elle-même cette valeur (mesure, annonce officielle, jeu de
- * données) ; suivre l'URL de la Provenance suffit à la vérifier telle quelle.
- * Hypothese : la valeur n'est pas publiée par son propriétaire ; elle est reconstituée à partir
- * d'indices indirects (architecture divulguée, ratio d'activation typique, benchmarks...) et doit
- * donc être affichée et traitée comme une estimation, jamais comme une mesure.
+ * MeasuredAndPublished: the source itself publishes this value (measurement, official
+ * announcement, dataset); following the Provenance URL is enough to verify it as-is.
+ * Hypothesis: the value is not published by its owner; it is reconstructed from indirect clues
+ * (leaked architecture, typical activation ratio, benchmarks...) and must therefore be displayed
+ * and treated as an estimate, never as a measurement.
  */
 enum ProvenanceType
 {
-    case MesureeEtPubliee;
-    case Hypothese;
+    case MeasuredAndPublished;
+    case Hypothesis;
 }

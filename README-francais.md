@@ -38,10 +38,10 @@ que le paquet lui-même.
 require 'vendor/autoload.php';
 
 use LlmCarbon\EmissionFactor;
-use LlmCarbon\FootprintCalculatorSimplifie;
+use LlmCarbon\FootprintCalculatorSimplified;
 use LlmCarbon\LanguageModel;
 
-$footprint = (new FootprintCalculatorSimplifie())->calculate(
+$footprint = (new FootprintCalculatorSimplified())->calculate(
     LanguageModel::llama31_70b(),
     EmissionFactor::france(),
     500, // nombre de tokens générés par la réponse
@@ -50,15 +50,15 @@ $footprint = (new FootprintCalculatorSimplifie())->calculate(
 echo $footprint->emissionsGco2eq, ' gCO2eq';
 ```
 
-`FootprintCalculatorSimplifie::calculate()` retourne un `Footprint`
-(`src/Footprint.php`) exposant trois valeurs : `energieParTokenWh`,
-`energieTotaleWh` et `emissionsGco2eq`. `LanguageModel` et `EmissionFactor`
-exposent chacun une fabrique par valeur du catalogue (voir `toutes()` sur
+`FootprintCalculatorSimplified::calculate()` retourne un `Footprint`
+(`src/Footprint.php`) exposant trois valeurs : `energyPerTokenWh`,
+`totalEnergyWh` et `emissionsGco2eq`. `LanguageModel` et `EmissionFactor`
+exposent chacun une fabrique par valeur du catalogue (voir `all()` sur
 chaque classe pour la liste complète : modèles `llama31_70b()`, `gpt4()`,
-`gpt4o()`, `qwen3_235b_a22b()` ; zones `france()`, `europe()`, `etatsUnis()`,
-`monde()`).
+`gpt4o()`, `qwen3_235b_a22b()` ; zones `france()`, `europe()`, `unitedStates()`,
+`world()`).
 
-Une seconde implémentation, `FootprintCalculatorComplet`, a la même
+Une seconde implémentation, `FootprintCalculatorFull`, a la même
 signature `calculate()` et prend en compte en plus la mémoire GPU requise et
 le nombre de cartes nécessaires pour charger le modèle ; voir
 [README-demo.md](README-demo.md#méthodologie) pour le détail de la différence entre
@@ -71,7 +71,7 @@ Le périmètre est strictement celui de **l'inférence**, à partir du seul
 
 - l'énergie GPU consommée pour générer les tokens de la réponse (régression
   EcoLogits sur les paramètres actifs du modèle) ;
-- avec `FootprintCalculatorComplet` uniquement, l'énergie du serveur hors
+- avec `FootprintCalculatorFull` uniquement, l'énergie du serveur hors
   GPU associée à cette même génération ;
 - la conversion de cette énergie en émissions de CO2eq, via le facteur
   d'émission du mix électrique de la zone choisie.
@@ -119,13 +119,13 @@ Le périmètre est strictement celui de **l'inférence**, à partir du seul
   activés) : [annonce officielle Qwen3,
   2025-04-29](https://qwenlm.github.io/blog/qwen3/).
 - **GPT-4 et GPT-4o** (paramètres non publiés par OpenAI, valeurs typées
-  `Hypothese`) : [méthodologie EcoLogits pour les modèles
+  `Hypothesis`) : [méthodologie EcoLogits pour les modèles
   propriétaires](https://ecologits.ai/latest/methodology/proprietary_models/)
   et [jeu de données des modèles d'EcoLogits
   0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json).
 
 Le détail complet de chaque source (URL, millésime, ce qu'elle affirme
 exactement) est accessible par le code via `LanguageModel::$provenance` /
-`$provenanceParametresTotaux` et `EmissionFactor::$provenance` — voir
+`$totalParametersProvenance` et `EmissionFactor::$provenance` — voir
 [README-demo.md](README-demo.md#provenance-des-valeurs) pour la synthèse et les
 limites détaillées.

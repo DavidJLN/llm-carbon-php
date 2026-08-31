@@ -12,95 +12,95 @@ use PHPUnit\Framework\TestCase;
 
 final class LanguageModelTest extends TestCase
 {
-    private function provenanceDeTest(): Provenance
+    private function testProvenance(): Provenance
     {
-        return new Provenance(ProvenanceType::MesureeEtPubliee, 'https://example.org', '2024', 'Note.');
+        return new Provenance(ProvenanceType::MeasuredAndPublished, 'https://example.org', '2024', 'Note.');
     }
 
-    public function testConstruitUnModeleAvecSesCinqAttributs(): void
+    public function testBuildsAModelWithItsFiveAttributes(): void
     {
-        $modele = new LanguageModel(
+        $model = new LanguageModel(
             'Llama 3.1 70B',
             70.0,
-            $this->provenanceDeTest(),
+            $this->testProvenance(),
             70.0,
-            $this->provenanceDeTest(),
+            $this->testProvenance(),
         );
 
-        self::assertSame('Llama 3.1 70B', $modele->nom);
-        self::assertEqualsWithDelta(70.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $modele->provenance->type);
-        self::assertEqualsWithDelta(70.0, $modele->parametresTotauxMilliards, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $modele->provenanceParametresTotaux->type);
+        self::assertSame('Llama 3.1 70B', $model->name);
+        self::assertEqualsWithDelta(70.0, $model->activeParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
+        self::assertEqualsWithDelta(70.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->totalParametersProvenance->type);
     }
 
-    public function testDesParametresActifsNulsLevePuisException(): void
+    public function testZeroActiveParametersThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new LanguageModel('Modèle invalide', 0.0, $this->provenanceDeTest(), 10.0, $this->provenanceDeTest());
+        new LanguageModel('Modèle invalide', 0.0, $this->testProvenance(), 10.0, $this->testProvenance());
     }
 
-    public function testDesParametresActifsNegatifsLevePuisException(): void
+    public function testNegativeActiveParametersThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new LanguageModel('Modèle invalide', -1.0, $this->provenanceDeTest(), 10.0, $this->provenanceDeTest());
+        new LanguageModel('Modèle invalide', -1.0, $this->testProvenance(), 10.0, $this->testProvenance());
     }
 
-    public function testDesParametresTotauxNulsLevePuisException(): void
+    public function testZeroTotalParametersThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new LanguageModel('Modèle invalide', 10.0, $this->provenanceDeTest(), 0.0, $this->provenanceDeTest());
+        new LanguageModel('Modèle invalide', 10.0, $this->testProvenance(), 0.0, $this->testProvenance());
     }
 
-    public function testDesParametresTotauxInferieursAuxActifsLevePuisException(): void
+    public function testTotalParametersBelowActiveParametersThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new LanguageModel('Modèle invalide', 10.0, $this->provenanceDeTest(), 9.0, $this->provenanceDeTest());
+        new LanguageModel('Modèle invalide', 10.0, $this->testProvenance(), 9.0, $this->testProvenance());
     }
 
-    public function testDenseImposeLegaliteEntreActifsEtTotaux(): void
+    public function testDenseEnforcesEqualityBetweenActiveAndTotalParameters(): void
     {
-        $provenance = $this->provenanceDeTest();
-        $modele = LanguageModel::dense('Modèle dense', 42.0, $provenance);
+        $provenance = $this->testProvenance();
+        $model = LanguageModel::dense('Modèle dense', 42.0, $provenance);
 
-        self::assertEqualsWithDelta(42.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertEqualsWithDelta(42.0, $modele->parametresTotauxMilliards, 0.0001);
-        self::assertSame($provenance, $modele->provenance);
-        self::assertSame($provenance, $modele->provenanceParametresTotaux);
+        self::assertEqualsWithDelta(42.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(42.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame($provenance, $model->provenance);
+        self::assertSame($provenance, $model->totalParametersProvenance);
     }
 
-    public function testLlama3170bEstMesureEtPublie(): void
+    public function testLlama3170bIsMeasuredAndPublished(): void
     {
-        $modele = LanguageModel::llama31_70b();
+        $model = LanguageModel::llama31_70b();
 
-        self::assertSame('Llama 3.1 70B', $modele->nom);
-        self::assertEqualsWithDelta(70.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $modele->provenance->type);
+        self::assertSame('Llama 3.1 70B', $model->name);
+        self::assertEqualsWithDelta(70.0, $model->activeParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
     }
 
-    public function testGpt4EstUneHypothese(): void
+    public function testGpt4IsAHypothesis(): void
     {
-        $modele = LanguageModel::gpt4();
+        $model = LanguageModel::gpt4();
 
-        self::assertSame(ProvenanceType::Hypothese, $modele->provenance->type);
-        self::assertGreaterThan(0, $modele->parametresActifsMilliards);
+        self::assertSame(ProvenanceType::Hypothesis, $model->provenance->type);
+        self::assertGreaterThan(0, $model->activeParametersBillions);
     }
 
-    public function testGpt4EstUnMoeAvecMoinsDActifsQueDeTotaux(): void
+    public function testGpt4IsAMoeWithFewerActiveThanTotalParameters(): void
     {
-        $modele = LanguageModel::gpt4();
+        $model = LanguageModel::gpt4();
 
-        self::assertEqualsWithDelta(176.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertEqualsWithDelta(1800.0, $modele->parametresTotauxMilliards, 0.0001);
-        self::assertSame(ProvenanceType::Hypothese, $modele->provenanceParametresTotaux->type);
-        self::assertLessThan($modele->parametresTotauxMilliards, $modele->parametresActifsMilliards);
+        self::assertEqualsWithDelta(176.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(1800.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::Hypothesis, $model->totalParametersProvenance->type);
+        self::assertLessThan($model->totalParametersBillions, $model->activeParametersBillions);
     }
 
-    public function testGpt4JustifieLHypotheseEtDonneLaBorneHaute(): void
+    public function testGpt4JustifiesTheHypothesisAndGivesTheUpperBound(): void
     {
         $note = LanguageModel::gpt4()->provenance->note;
 
@@ -116,43 +116,43 @@ final class LanguageModelTest extends TestCase
         );
     }
 
-    public function testGpt4oEstUnMoeAvecMoinsDActifsQueDeTotaux(): void
+    public function testGpt4oIsAMoeWithFewerActiveThanTotalParameters(): void
     {
-        $modele = LanguageModel::gpt4o();
+        $model = LanguageModel::gpt4o();
 
-        self::assertEqualsWithDelta(44.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertEqualsWithDelta(440.0, $modele->parametresTotauxMilliards, 0.0001);
-        self::assertSame(ProvenanceType::Hypothese, $modele->provenance->type);
-        self::assertSame(ProvenanceType::Hypothese, $modele->provenanceParametresTotaux->type);
+        self::assertEqualsWithDelta(44.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(440.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::Hypothesis, $model->provenance->type);
+        self::assertSame(ProvenanceType::Hypothesis, $model->totalParametersProvenance->type);
     }
 
-    public function testQwen3235bA22bEstMesureEtPublieAvecTotalDistinctDesActifs(): void
+    public function testQwen3235bA22bIsMeasuredAndPublishedWithTotalDistinctFromActive(): void
     {
-        $modele = LanguageModel::qwen3_235b_a22b();
+        $model = LanguageModel::qwen3_235b_a22b();
 
-        self::assertEqualsWithDelta(22.0, $modele->parametresActifsMilliards, 0.0001);
-        self::assertEqualsWithDelta(235.0, $modele->parametresTotauxMilliards, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $modele->provenance->type);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $modele->provenanceParametresTotaux->type);
+        self::assertEqualsWithDelta(22.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(235.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->totalParametersProvenance->type);
     }
 
-    public function testToutesRetourneQuatreModeles(): void
+    public function testAllReturnsFourModels(): void
     {
-        self::assertCount(4, LanguageModel::toutes());
+        self::assertCount(4, LanguageModel::all());
     }
 
-    public function testChaqueModeleDeToutesPorteUneProvenanceNonVide(): void
+    public function testEachModelFromAllCarriesANonEmptyProvenance(): void
     {
-        foreach (LanguageModel::toutes() as $modele) {
+        foreach (LanguageModel::all() as $model) {
             self::assertNotSame(
                 '',
-                trim($modele->provenance->url),
-                sprintf('Le modèle « %s » doit citer une provenance pour ses paramètres actifs.', $modele->nom)
+                trim($model->provenance->url),
+                sprintf('Le modèle « %s » doit citer une provenance pour ses paramètres actifs.', $model->name)
             );
             self::assertNotSame(
                 '',
-                trim($modele->provenanceParametresTotaux->url),
-                sprintf('Le modèle « %s » doit citer une provenance pour ses paramètres totaux.', $modele->nom)
+                trim($model->totalParametersProvenance->url),
+                sprintf('Le modèle « %s » doit citer une provenance pour ses paramètres totaux.', $model->name)
             );
         }
     }

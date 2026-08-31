@@ -30,21 +30,21 @@ Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de li
 - `public/index.php` — point d'entrée HTTP : instancie le scénario (`LanguageModel`,
   `EmissionFactor`), appelle `FootprintCalculator`, puis affiche les résultats, le tableau
   comparatif par zone et par modèle, et le détail de chaque provenance en pied de page. Ne
-  contient plus aucun calcul. Affiche un badge visuel (`badgeProvenance()`) distinguant une
-  provenance `Hypothese` d'une provenance `MesureeEtPubliee` partout où une valeur est montrée.
-- `src/ProvenanceType.php` — enum : nature d'une provenance, `MesureeEtPubliee` (la source publie la
-  valeur telle quelle) ou `Hypothese` (valeur reconstituée faute de donnée publiée).
+  contient plus aucun calcul. Affiche un badge visuel (`provenanceBadge()`) distinguant une
+  provenance `Hypothesis` d'une provenance `MeasuredAndPublished` partout où une valeur est montrée.
+- `src/ProvenanceType.php` — enum : nature d'une provenance, `MeasuredAndPublished` (la source publie la
+  valeur telle quelle) ou `Hypothesis` (valeur reconstituée faute de donnée publiée).
 - `src/Provenance.php` — objet-valeur `readonly` portant la provenance d'une valeur numérique :
-  son `type` (`ProvenanceType`), l'`url` de la source, le `millesimeOuDateDeConsultation` et une
+  son `type` (`ProvenanceType`), l'`url` de la source, le `yearOrConsultationDate` et une
   `note` disant ce que la source affirme exactement. Les quatre champs sont obligatoires et non
   nullables (le constructeur lève si l'un d'eux est vide) : une valeur ne peut pas être construite
   sans provenance complète.
 - `src/LanguageModel.php` — objet-valeur `readonly` : nom du modèle, paramètres actifs (en
   milliards), `Provenance` ; expose les fabriques statiques `llama31_70b()`, `gpt4()` (modèle
-  propriétaire, provenance de type `Hypothese`), et `toutes()`.
+  propriétaire, provenance de type `Hypothesis`), et `all()`.
 - `src/EmissionFactor.php` — objet-valeur `readonly` : zone géographique, facteur d'émission
   (gCO2eq/kWh), `Provenance` ; expose les fabriques statiques `france()`, `europe()`,
-  `etatsUnis()`, `monde()`, et `toutes()`.
+  `unitedStates()`, `world()`, et `all()`.
 - `src/Footprint.php` — objet-valeur `readonly` : résultat du calcul (énergie par token, énergie totale, émissions).
 - `src/FootprintCalculator.php` — seule classe portant les coefficients de la méthodologie EcoLogits (alpha, beta, PUE) ; sa méthode `calculate()` combine un `LanguageModel` et un `EmissionFactor` en un `Footprint`.
 - `README.md` — documente l'usage, la méthodologie EcoLogits pas à pas, les sources et les limites connues du calcul.
@@ -58,8 +58,8 @@ Pour `EmissionFactor` et `LanguageModel`, cette règle n'est plus seulement une 
 commentaire : elle est portée par le type. Les deux classes exigent un objet `Provenance`
 (`src/Provenance.php`) en paramètre obligatoire, non nullable, de leur constructeur — il est donc
 impossible de compiler une instance sans provenance. `Provenance` porte quatre champs
-obligatoires : `type` (`ProvenanceType::MesureeEtPubliee` ou `ProvenanceType::Hypothese`), `url`,
-`millesimeOuDateDeConsultation`, `note`. **Ne jamais introduire un second champ de source** (par
+obligatoires : `type` (`ProvenanceType::MeasuredAndPublished` ou `ProvenanceType::Hypothesis`), `url`,
+`yearOrConsultationDate`, `note`. **Ne jamais introduire un second champ de source** (par
 exemple un `urlSource` séparé) à côté de `Provenance` sur ces deux classes : deux sources de
 vérité pour la même chose finissent toujours par diverger — une seule provenance par valeur.
 
@@ -68,14 +68,14 @@ objets-valeurs construits depuis l'extérieur, le commentaire/docblock citant la
 convention à suivre.
 
 **Mesure ou hypothèse — jamais l'inverse :**
-- `ProvenanceType::MesureeEtPubliee` : la source publie la valeur telle quelle ; la note rappelle
+- `ProvenanceType::MeasuredAndPublished` : la source publie la valeur telle quelle ; la note rappelle
   ce qu'elle affirme.
-- `ProvenanceType::Hypothese` : la valeur n'est pas publiée par son propriétaire (typiquement un
+- `ProvenanceType::Hypothesis` : la valeur n'est pas publiée par son propriétaire (typiquement un
   modèle propriétaire dont les paramètres actifs sont secrets) et a été reconstituée à partir
   d'indices indirects. Dans ce cas, la note **doit** expliquer pourquoi la donnée n'est pas
   publiée et ce que vaudrait la borne haute de l'estimation (voir `LanguageModel::gpt4()` pour un
   exemple).
-- L'affichage (`public/index.php`, fonction `badgeProvenance()`) **doit** distinguer visuellement
+- L'affichage (`public/index.php`, fonction `provenanceBadge()`) **doit** distinguer visuellement
   une hypothèse d'une mesure partout où la valeur apparaît (badge « ⚠ Hypothèse » vs « ✓ Mesuré et
   publié »). Une hypothèse qui se présente visuellement comme une mesure est le défaut à corriger
   en priorité si on le rencontre.
@@ -86,7 +86,7 @@ convention à suivre.
 - Une constante non sourcée ne peut pas être mise à jour correctement si la méthodologie évolue, car son origine est perdue.
 - Une hypothèse affichée comme une mesure trompe l'utilisateur sur la fiabilité du chiffre qu'il lit.
 
-En conséquence : ne jamais ajouter, modifier ou approximer une constante numérique liée au calcul sans citer sa source exacte, et ne jamais remplacer une source par une valeur « raisonnable » ou estimée à la main — sauf hypothèse explicitement typée `ProvenanceType::Hypothese`, justifiée et bornée comme décrit ci-dessus.
+En conséquence : ne jamais ajouter, modifier ou approximer une constante numérique liée au calcul sans citer sa source exacte, et ne jamais remplacer une source par une valeur « raisonnable » ou estimée à la main — sauf hypothèse explicitement typée `ProvenanceType::Hypothesis`, justifiée et bornée comme décrit ci-dessus.
 
 ## Interdits absolus
 

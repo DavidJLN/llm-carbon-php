@@ -7,39 +7,39 @@ namespace LlmCarbon;
 use InvalidArgumentException;
 
 /**
- * Modèle de langage étudié. Son nombre de paramètres actifs détermine, via
- * FootprintCalculatorSimplifie et FootprintCalculatorComplet, l'énergie GPU consommée par token
- * généré ; son nombre de paramètres TOTAUX détermine, via FootprintCalculatorComplet, la mémoire
- * GPU requise pour charger le modèle (donc le nombre de cartes nécessaires).
+ * Language model under study. Its number of active parameters determines, via
+ * FootprintCalculatorSimplified and FootprintCalculatorFull, the GPU energy consumed per
+ * generated token; its number of TOTAL parameters determines, via FootprintCalculatorFull, the
+ * GPU memory required to load the model (hence the number of cards needed).
  *
- * Pour un modèle dense, paramètres actifs et paramètres totaux sont égaux par définition (tous les
- * paramètres participent à chaque token) : utiliser la fabrique dense() plutôt que répéter la
- * valeur et sa provenance deux fois. Pour un modèle Mixture-of-Experts (MoE), seule une fraction
- * des paramètres totaux est activée par token : les deux valeurs diffèrent et chacune a sa propre
- * provenance (voir gpt4()).
+ * For a dense model, active parameters and total parameters are equal by definition (all
+ * parameters participate in every token): use the dense() factory rather than repeating the
+ * value and its provenance twice. For a Mixture-of-Experts (MoE) model, only a fraction of the
+ * total parameters is activated per token: the two values differ and each has its own provenance
+ * (see gpt4()).
  */
 final class LanguageModel
 {
     public function __construct(
-        public readonly string $nom,
-        public readonly float $parametresActifsMilliards,
+        public readonly string $name,
+        public readonly float $activeParametersBillions,
         public readonly Provenance $provenance,
-        public readonly float $parametresTotauxMilliards,
-        public readonly Provenance $provenanceParametresTotaux,
+        public readonly float $totalParametersBillions,
+        public readonly Provenance $totalParametersProvenance,
     ) {
-        if ($this->parametresActifsMilliards <= 0) {
+        if ($this->activeParametersBillions <= 0) {
             throw new InvalidArgumentException(
                 'Le nombre de paramètres actifs (en milliards) doit être strictement positif.'
             );
         }
 
-        if ($this->parametresTotauxMilliards <= 0) {
+        if ($this->totalParametersBillions <= 0) {
             throw new InvalidArgumentException(
                 'Le nombre de paramètres totaux (en milliards) doit être strictement positif.'
             );
         }
 
-        if ($this->parametresTotauxMilliards < $this->parametresActifsMilliards) {
+        if ($this->totalParametersBillions < $this->activeParametersBillions) {
             throw new InvalidArgumentException(
                 'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
                 . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
@@ -49,18 +49,18 @@ final class LanguageModel
     }
 
     /**
-     * Fabrique pour un modèle dense : tous les paramètres sont actifs à chaque token, donc
-     * paramètres actifs et paramètres totaux sont la même valeur, avec la même provenance. Pose
-     * cette égalité une fois pour toutes plutôt que de la laisser à la charge de chaque appelant.
+     * Factory for a dense model: all parameters are active on every token, so active parameters
+     * and total parameters are the same value, with the same provenance. Establishes this
+     * equality once and for all rather than leaving it to each caller.
      */
-    public static function dense(string $nom, float $parametresMilliards, Provenance $provenance): self
+    public static function dense(string $name, float $parametersBillions, Provenance $provenance): self
     {
-        return new self($nom, $parametresMilliards, $provenance, $parametresMilliards, $provenance);
+        return new self($name, $parametersBillions, $provenance, $parametersBillions, $provenance);
     }
 
     /**
-     * Llama 3.1 70B (Meta), modèle ouvert : Meta publie officiellement le nombre de paramètres de
-     * chaque variante de la famille (8B, 70B, 405B).
+     * Llama 3.1 70B (Meta), open model: Meta officially publishes the parameter count of each
+     * variant of the family (8B, 70B, 405B).
      */
     public static function llama31_70b(): self
     {
@@ -68,7 +68,7 @@ final class LanguageModel
             'Llama 3.1 70B',
             70,
             new Provenance(
-                ProvenanceType::MesureeEtPubliee,
+                ProvenanceType::MeasuredAndPublished,
                 'https://ai.meta.com/blog/meta-llama-3-1/',
                 '2024-07-23',
                 "Annonce officielle Meta : la famille Llama 3.1 comprend des variantes de 8, 70 "
@@ -80,10 +80,10 @@ final class LanguageModel
     }
 
     /**
-     * GPT-4 (OpenAI), modèle propriétaire : OpenAI ne publie ni l'architecture ni le nombre de
-     * paramètres. Les deux valeurs (actifs et totaux) retenues ici sont des hypothèses, pas des
-     * mesures — voir la note de chaque Provenance pour le raisonnement et, pour les paramètres
-     * actifs, la borne haute de l'estimation.
+     * GPT-4 (OpenAI), proprietary model: OpenAI publishes neither the architecture nor the
+     * parameter count. Both values (active and total) retained here are hypotheses, not
+     * measurements — see the note of each Provenance for the reasoning and, for the active
+     * parameters, the upper bound of the estimate.
      */
     public static function gpt4(): self
     {
@@ -91,7 +91,7 @@ final class LanguageModel
             'GPT-4 (OpenAI)',
             176,
             new Provenance(
-                ProvenanceType::Hypothese,
+                ProvenanceType::Hypothesis,
                 'https://ecologits.ai/latest/methodology/proprietary_models/',
                 'Consulté le 2026-08-20',
                 'GPT-4 est un modèle propriétaire : OpenAI n\'a jamais publié son nombre de '
@@ -113,7 +113,7 @@ final class LanguageModel
             ),
             1800,
             new Provenance(
-                ProvenanceType::Hypothese,
+                ProvenanceType::Hypothesis,
                 'https://ecologits.ai/latest/methodology/proprietary_models/',
                 'Consulté le 2026-08-27',
                 "OpenAI n'a jamais publié le nombre total de paramètres de GPT-4. EcoLogits "
@@ -130,13 +130,13 @@ final class LanguageModel
     }
 
     /**
-     * GPT-4o (OpenAI), modèle propriétaire : comme GPT-4, OpenAI ne publie ni l'architecture ni le
-     * nombre de paramètres. Les deux valeurs retenues ici sont des hypothèses, pas des mesures.
-     * EcoLogits estime GPT-4o à très exactement un quart des paramètres qu'il retient pour GPT-4
-     * (1760/4 = 440 milliards au total, 176/4 = 44 et 528/4 = 132 milliards de paramètres actifs) :
-     * cette proportionnalité suggère une architecture MoE de même famille réduite d'un facteur 4,
-     * mais EcoLogits ne publie pas de raisonnement détaillé indépendant pour ce ratio précis au-delà
-     * du jeu de données lui-même (voir la note de la Provenance des paramètres totaux).
+     * GPT-4o (OpenAI), proprietary model: like GPT-4, OpenAI publishes neither the architecture
+     * nor the parameter count. Both values retained here are hypotheses, not measurements.
+     * EcoLogits estimates GPT-4o at exactly one quarter of the parameters it retains for GPT-4
+     * (1760/4 = 440 billion total, 176/4 = 44 and 528/4 = 132 billion active parameters): this
+     * proportionality suggests a MoE architecture of the same family scaled down by a factor of
+     * 4, but EcoLogits does not publish independent detailed reasoning for this precise ratio
+     * beyond the dataset itself (see the note of the total parameters Provenance).
      */
     public static function gpt4o(): self
     {
@@ -144,7 +144,7 @@ final class LanguageModel
             'GPT-4o (OpenAI)',
             44,
             new Provenance(
-                ProvenanceType::Hypothese,
+                ProvenanceType::Hypothesis,
                 'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
                 '0.11.1',
                 "GPT-4o est un modèle propriétaire : OpenAI n'a jamais publié son nombre de "
@@ -165,7 +165,7 @@ final class LanguageModel
             ),
             440,
             new Provenance(
-                ProvenanceType::Hypothese,
+                ProvenanceType::Hypothesis,
                 'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
                 '0.11.1',
                 "OpenAI n'a jamais publié le nombre total de paramètres de GPT-4o. EcoLogits "
@@ -178,15 +178,15 @@ final class LanguageModel
     }
 
     /**
-     * Qwen3-235B-A22B (Alibaba/Qwen), modèle ouvert de type Mixture-of-Experts : l'équipe Qwen
-     * publie officiellement, dans son annonce de Qwen3, le nombre total de paramètres et le nombre
-     * de paramètres activés par token — contrairement à GPT-4 et GPT-4o, ce ne sont pas des
-     * hypothèses mais des valeurs mesurées et publiées par le fournisseur du modèle.
+     * Qwen3-235B-A22B (Alibaba/Qwen), open Mixture-of-Experts model: the Qwen team officially
+     * publishes, in its Qwen3 announcement, the total parameter count and the number of
+     * parameters activated per token — unlike GPT-4 and GPT-4o, these are not hypotheses but
+     * values measured and published by the model provider.
      */
     public static function qwen3_235b_a22b(): self
     {
         $provenance = new Provenance(
-            ProvenanceType::MesureeEtPubliee,
+            ProvenanceType::MeasuredAndPublished,
             'https://qwenlm.github.io/blog/qwen3/',
             '2025-04-29',
             'Annonce officielle Qwen3 : « Qwen3-235B-A22B, a large model with 235 billion total '
@@ -198,12 +198,12 @@ final class LanguageModel
     }
 
     /**
-     * Tous les modèles du catalogue, pour affichage comparatif ou vérification (par exemple :
-     * chaque modèle doit citer une provenance).
+     * All models in the catalog, for comparative display or verification (e.g. every model must
+     * cite a provenance).
      *
      * @return list<self>
      */
-    public static function toutes(): array
+    public static function all(): array
     {
         return [
             self::llama31_70b(),

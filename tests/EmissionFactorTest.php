@@ -12,83 +12,83 @@ final class EmissionFactorTest extends TestCase
 {
     public function testFrance(): void
     {
-        $facteur = EmissionFactor::france();
+        $factor = EmissionFactor::france();
 
-        self::assertSame('France', $facteur->zone);
-        self::assertEqualsWithDelta(81.3, $facteur->gCo2eqParKwh, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $facteur->provenance->type);
+        self::assertSame('France', $factor->zone);
+        self::assertEqualsWithDelta(81.3, $factor->gCo2eqPerKwh, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $factor->provenance->type);
     }
 
-    public function testFranceEstDoublementAttribueEcoLogitsEtAdeme(): void
+    public function testFranceIsDoublyAttributedToEcoLogitsAndAdeme(): void
     {
-        $facteur = EmissionFactor::france();
+        $factor = EmissionFactor::france();
 
         self::assertStringContainsString(
             'github.com/mlco2/ecologits',
-            $facteur->provenance->url,
+            $factor->provenance->url,
             "L'URL de provenance du facteur français doit pointer vers EcoLogits."
         );
         self::assertStringContainsString(
             '0.4.0',
-            $facteur->provenance->millesimeOuDateDeConsultation,
+            $factor->provenance->yearOrConsultationDate,
             'Le millésime du facteur français doit citer la version 0.4.0 d\'EcoLogits.'
         );
         self::assertStringContainsString(
             'EcoLogits',
-            $facteur->provenance->note,
+            $factor->provenance->note,
             'La note du facteur français doit mentionner EcoLogits.'
         );
         self::assertStringContainsString(
             'ADEME',
-            $facteur->provenance->note,
+            $factor->provenance->note,
             "La note du facteur français doit aussi mentionner l'ADEME (double attribution)."
         );
     }
 
     public function testEurope(): void
     {
-        $facteur = EmissionFactor::europe();
+        $factor = EmissionFactor::europe();
 
-        self::assertSame('Europe', $facteur->zone);
-        self::assertEqualsWithDelta(509.4, $facteur->gCo2eqParKwh, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $facteur->provenance->type);
+        self::assertSame('Europe', $factor->zone);
+        self::assertEqualsWithDelta(509.4, $factor->gCo2eqPerKwh, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $factor->provenance->type);
     }
 
-    public function testEtatsUnis(): void
+    public function testUnitedStates(): void
     {
-        $facteur = EmissionFactor::etatsUnis();
+        $factor = EmissionFactor::unitedStates();
 
-        self::assertSame('États-Unis', $facteur->zone);
-        self::assertEqualsWithDelta(679.8, $facteur->gCo2eqParKwh, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $facteur->provenance->type);
+        self::assertSame('États-Unis', $factor->zone);
+        self::assertEqualsWithDelta(679.8, $factor->gCo2eqPerKwh, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $factor->provenance->type);
     }
 
-    public function testMonde(): void
+    public function testWorld(): void
     {
-        $facteur = EmissionFactor::monde();
+        $factor = EmissionFactor::world();
 
-        self::assertSame('Monde', $facteur->zone);
-        self::assertEqualsWithDelta(590.5, $facteur->gCo2eqParKwh, 0.0001);
-        self::assertSame(ProvenanceType::MesureeEtPubliee, $facteur->provenance->type);
+        self::assertSame('Monde', $factor->zone);
+        self::assertEqualsWithDelta(590.5, $factor->gCo2eqPerKwh, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $factor->provenance->type);
     }
 
-    public function testToutesRetourneLesQuatreZones(): void
+    public function testAllReturnsTheFourZones(): void
     {
-        $facteurs = EmissionFactor::toutes();
+        $factors = EmissionFactor::all();
 
-        self::assertCount(4, $facteurs);
+        self::assertCount(4, $factors);
 
-        $zones = array_map(static fn (EmissionFactor $facteur): string => $facteur->zone, $facteurs);
+        $zones = array_map(static fn (EmissionFactor $factor): string => $factor->zone, $factors);
         self::assertSame(['France', 'Europe', 'États-Unis', 'Monde'], $zones);
     }
 
-    public function testChaqueFacteurDeToutesPorteUneProvenanceNonVide(): void
+    public function testEachFactorFromAllCarriesANonEmptyProvenance(): void
     {
-        foreach (EmissionFactor::toutes() as $facteur) {
+        foreach (EmissionFactor::all() as $factor) {
             self::assertNotSame(
                 '',
-                trim($facteur->provenance->url),
-                sprintf("Le facteur d'émission « %s » doit citer une provenance.", $facteur->zone)
+                trim($factor->provenance->url),
+                sprintf("Le facteur d'émission « %s » doit citer une provenance.", $factor->zone)
             );
         }
     }

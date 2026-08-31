@@ -21,10 +21,10 @@ Puis ouvrir http://localhost:8000 dans un navigateur. `composer install` ne tél
 Le calcul suit la méthodologie [EcoLogits
 v0.4.0](https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md),
 qui propose deux niveaux de modélisation. Les deux coexistent dans ce
-dépôt (`FootprintCalculatorSimplifie` et `FootprintCalculatorComplet`) pour
+dépôt (`FootprintCalculatorSimplified` et `FootprintCalculatorFull`) pour
 pouvoir comparer leurs résultats.
 
-**Modèle simplifié** (`src/FootprintCalculatorSimplifie.php`) :
+**Modèle simplifié** (`src/FootprintCalculatorSimplified.php`) :
 
 1. **Énergie GPU par token** : régression linéaire entre le nombre de
    paramètres actifs du modèle (en milliards) et l'énergie consommée par
@@ -39,7 +39,7 @@ pouvoir comparer leurs résultats.
    multipliée par le facteur d'émission du mix électrique de la zone
    d'hébergement du datacenter.
 
-**Modèle complet** (`src/FootprintCalculatorComplet.php`) : reprend la même
+**Modèle complet** (`src/FootprintCalculatorFull.php`) : reprend la même
 régression pour l'énergie GPU, mais l'intègre dans un calcul plus détaillé qui
 tient aussi compte du matériel réellement nécessaire pour héberger le modèle :
 
@@ -61,7 +61,7 @@ Le modèle complet donne un résultat plus élevé que le modèle simplifié dè
 qu'un modèle nécessite plusieurs cartes GPU (l'énergie GPU est alors comptée
 plusieurs fois) ; pour un modèle dense tenant sur une seule carte, l'écart
 vient uniquement de l'énergie du serveur hors GPU, absente du modèle
-simplifié. `src/EcartCalculator.php` décompose cet écart en deux parts qui
+simplifié. `src/DifferenceCalculator.php` décompose cet écart en deux parts qui
 s'additionnent exactement (aucun résidu) : la part « serveur » (le terme
 absent du modèle simplifié) et la part « cartes » (le supplément dû à compter
 l'énergie GPU plusieurs fois). La page affiche les deux résultats côte à côte
@@ -87,7 +87,7 @@ Chaque `EmissionFactor` porte une `Provenance` (`src/Provenance.php`), et
 chaque `LanguageModel` en porte deux — une pour ses paramètres actifs, une
 pour ses paramètres totaux, qui peuvent avoir des origines différentes (voir
 GPT-4 ci-dessous). Une `Provenance` est obligatoire à la construction : type
-(`MesureeEtPubliee` ou `Hypothese`), URL de la source, millésime ou date de
+(`MeasuredAndPublished` ou `Hypothesis`), URL de la source, millésime ou date de
 consultation, et une note qui dit ce que la source affirme exactement.
 Impossible de créer l'une de ces deux classes sans provenance complète — le
 constructeur l'exige. Pour un modèle dense (paramètres actifs = paramètres
@@ -128,8 +128,8 @@ trois ratios ne coïncident jamais : la régression EcoLogits est affine (elle a
 un terme constant β qui ne varie pas avec les paramètres, donc rien n'y est
 strictement proportionnel), et le modèle complet en combine deux (durée,
 énergie GPU) sous un même PUE, ce qui produit encore un troisième ratio. Voir
-le docblock de `src/FootprintCalculatorComplet.php` et les tests dédiés de
-`tests/FootprintCalculatorCompletTest.php`.
+le docblock de `src/FootprintCalculatorFull.php` et les tests dédiés de
+`tests/FootprintCalculatorFullTest.php`.
 
 Voir [la méthodologie EcoLogits pour les modèles
 propriétaires](https://ecologits.ai/latest/methodology/proprietary_models/)
@@ -168,12 +168,12 @@ d'EcoLogits 0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/dat
   hypothèses (voir « Provenance des valeurs » ci-dessus), pas des mesures —
   les résultats affichés pour ces deux modèles héritent de cette incertitude.
 - **Le modèle complet ne doit pas paraître plus fiable que ses entrées** :
-  le nombre de cartes GPU (`cartesGpu`) est déterminé **uniquement** par les
+  le nombre de cartes GPU (`gpuCards`) est déterminé **uniquement** par les
   paramètres TOTAUX et par la quantification supposée — aucune autre donnée
   ne le corrobore. Pour GPT-4o, ce sont donc les 440 milliards de paramètres
   totaux *supposés* (une hypothèse, pas une mesure) qui fixent à eux seuls ce
   nombre de cartes, et par ricochet une bonne part de l'énergie totale du
-  modèle complet. La page reflète ça visuellement : `cartesGpu`, l'énergie et
+  modèle complet. La page reflète ça visuellement : `gpuCards`, l'énergie et
   les émissions du modèle complet portent le badge « ⚠ Hypothèse » dès que
   l'une de leurs deux entrées (actifs ou totaux) en est une — ils ne portent
   jamais le badge « ✓ Mesuré et publié » si le modèle simplifié, sur la même

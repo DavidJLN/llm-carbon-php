@@ -9,6 +9,22 @@ Tant que la version majeure reste à `0`, l'interface publique (signatures des
 classes de `src/`) peut encore changer sans préavis — voir [la clause 4 de
 Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
 
+## [Unreleased]
+
+### Changed
+
+- **Changement cassant.** Renommage en anglais de l'ensemble des identifiants de code de `src/`,
+  `tests/` et `public/index.php` (classes, méthodes, propriétés, constantes), pour la lecture à
+  l'international : `FootprintCalculatorSimplifie` → `FootprintCalculatorSimplified`,
+  `FootprintCalculatorComplet` → `FootprintCalculatorFull`, `FootprintComplet` → `FootprintFull`,
+  `EcartCalculator` → `DifferenceCalculator`, `EcartModeles` → `ModelsDifference`, ainsi que les
+  propriétés et méthodes associées (`energieTotaleWh` → `totalEnergyWh`,
+  `parametresActifsMilliards` → `activeParametersBillions`, `EmissionFactor::etatsUnis()` →
+  `unitedStates()`, `EmissionFactor::monde()` → `world()`, `toutes()` → `all()`,
+  `ProvenanceType::MesureeEtPubliee`/`Hypothese` → `MeasuredAndPublished`/`Hypothesis`, etc.). Le
+  texte affiché par `public/index.php` reste en français ; seuls les identifiants de code
+  changent.
+
 ## [0.1.0] - 2026-08-28
 
 ### Added

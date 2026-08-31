@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace LlmCarbon;
 
 /**
- * Résultat du calcul d'empreinte pour une requête : énergie et émissions associées.
+ * Result of the footprint calculation for a request: associated energy and emissions.
  */
 final class Footprint
 {
     public function __construct(
-        public readonly float $energieParTokenWh,
-        public readonly float $energieTotaleWh,
+        public readonly float $energyPerTokenWh,
+        public readonly float $totalEnergyWh,
         public readonly float $emissionsGco2eq,
     ) {
     }

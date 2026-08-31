@@ -7,28 +7,28 @@ namespace LlmCarbon;
 use InvalidArgumentException;
 
 /**
- * Provenance d'une valeur numérique utilisée dans le calcul : d'où elle vient, si elle est
- * mesurée et publiée par une source ou reconstituée par hypothèse, et ce que la source affirme
- * exactement.
+ * Provenance of a numeric value used in the calculation: where it comes from, whether it is
+ * measured and published by a source or reconstructed as a hypothesis, and what the source
+ * states exactly.
  *
- * Toute valeur numérique portée par EmissionFactor ou LanguageModel doit être construite avec une
- * Provenance : ce n'est pas une vérification à l'exécution, c'est la signature de leurs
- * constructeurs qui l'impose (paramètre typé, obligatoire, non nullable). Un chiffre sans
- * provenance ne compile pas.
+ * Any numeric value carried by EmissionFactor or LanguageModel must be constructed with a
+ * Provenance: this is not a runtime check, it is the signature of their constructors that
+ * enforces it (typed, mandatory, non-nullable parameter). A number without a provenance does not
+ * compile.
  */
 final class Provenance
 {
     public function __construct(
         public readonly ProvenanceType $type,
         public readonly string $url,
-        public readonly string $millesimeOuDateDeConsultation,
+        public readonly string $yearOrConsultationDate,
         public readonly string $note,
     ) {
         if (trim($this->url) === '') {
             throw new InvalidArgumentException('La provenance doit citer une URL de source.');
         }
 
-        if (trim($this->millesimeOuDateDeConsultation) === '') {
+        if (trim($this->yearOrConsultationDate) === '') {
             throw new InvalidArgumentException(
                 'La provenance doit préciser un millésime (année des données) ou une date de consultation.'
             );
