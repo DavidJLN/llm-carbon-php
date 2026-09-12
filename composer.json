@@ -1,6 +1,6 @@
 {
     "name": "davidjln/llm-carbon-php",
-    "description": "Estimation de l'énergie consommée et des émissions de CO2eq d'une requête à un modèle de langage (LLM), selon la méthodologie EcoLogits.",
+    "description": "Calculation of the energy consumed and the CO2eq emissions of an inference request to a language model (LLM), following the EcoLogits v0.4.0 methodology.",
     "type": "project",
     "license": "MIT",
     "require": {
