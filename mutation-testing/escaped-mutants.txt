@@ -1,0 +1,78 @@
+Note: Pass `--log-verbosity=all` to log information about killed and errored mutants.
+Note: Pass `--debug` to log test-framework output.
+
+Escaped mutants:
+================
+
+1) /root/work/llm-carbon-php/src/LanguageModel.php:51    [M] ConcatOperandRemoval [ID] 609838061dbd8374dbc84e9f2947eb4a
+
+@@ @@
+             // testZeroTotalParametersThrowsAnException() et
+             // testTotalParametersBelowActiveParametersThrowsAnException() de LanguageModelTest.
+             throw new InvalidArgumentException(
+-                'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+-                . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
++                'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
+                 . "n'en possède)."
+             );
+         }
+
+
+2) /root/work/llm-carbon-php/src/LanguageModel.php:51    [M] Concat [ID] d83eece5a9aeaeb5605ba9547731c818
+
+@@ @@
+             // testZeroTotalParametersThrowsAnException() et
+             // testTotalParametersBelowActiveParametersThrowsAnException() de LanguageModelTest.
+             throw new InvalidArgumentException(
+-                'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+-                . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
++                'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il ' . 'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+                 . "n'en possède)."
+             );
+         }
+
+
+3) /root/work/llm-carbon-php/src/LanguageModel.php:51    [M] ConcatOperandRemoval [ID] 3238fc71c0c5fb4300c881cf9a04928c
+
+@@ @@
+             // testTotalParametersBelowActiveParametersThrowsAnException() de LanguageModelTest.
+             throw new InvalidArgumentException(
+                 'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+-                . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
+                 . "n'en possède)."
+             );
+         }
+
+
+4) /root/work/llm-carbon-php/src/LanguageModel.php:51    [M] Concat [ID] b697539333ce5aef082e29fcec252959
+
+@@ @@
+             // testZeroTotalParametersThrowsAnException() et
+             // testTotalParametersBelowActiveParametersThrowsAnException() de LanguageModelTest.
+             throw new InvalidArgumentException(
+-                'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+-                . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
+-                . "n'en possède)."
++                'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de ' . "n'en possède)." . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
+             );
+         }
+     }
+
+
+5) /root/work/llm-carbon-php/src/LanguageModel.php:51    [M] ConcatOperandRemoval [ID] f423c3967bc047cae0c14f43c4a2ccf8
+
+@@ @@
+             throw new InvalidArgumentException(
+                 'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
+                 . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
+-                . "n'en possède)."
+             );
+         }
+     }
+
+
+Timed Out mutants:
+==================
+
+Skipped mutants:
+================

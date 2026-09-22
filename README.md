@@ -25,6 +25,8 @@ emissions associated with that specific call.
 Minimum PHP version required: **8.4** (the package uses `readonly`
 properties).
 
+This is due to minimal version required by PHPUnit 13 and Infection.
+
 ```bash
 composer require davidjln/llm-carbon-php
 ```

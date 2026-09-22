@@ -80,3 +80,25 @@ jobs:
 
       - name: Exécuter la suite de tests
         run: vendor/bin/phpunit
+
+  mutation:
+    name: Mutation testing (Infection)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          coverage: pcov
+
+      - name: Installer les dépendances
+        run: composer install --prefer-dist --no-progress
+
+      - name: Exécuter Infection (mutation testing)
+        # Seuils fixés à la valeur atteinte lors de la mise en place du mutation testing
+        # (mutation-testing/escaped-mutants.txt, RAPPORT.md) : 5 mutants restent délibérément
+        # non tués (détail d'implémentation justifié par écrit dans src/LanguageModel.php), d'où
+        # un MSI cible de 97 % et non 100 %.
+        run: vendor/bin/infection --no-progress --min-msi=97 --min-covered-msi=97

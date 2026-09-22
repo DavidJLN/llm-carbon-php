@@ -1,0 +1,31 @@
+{
+    // Configuration Infection (mutation testing) pour llm-carbon-php.
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    // "max" : Infection détecte lui-même le nombre de coeurs logiques disponibles (fidry/cpu-core-
+    // counter), aussi bien sur la machine de développement que sur un runner CI — pas de valeur
+    // codée en dur à réajuster à chaque changement de machine.
+    // Note pour Windows/WSL2 : si le dépôt est ouvert depuis un chemin /mnt/c/... (disque Windows
+    // monté en 9p), chaque process PHP coûte plusieurs secondes de latence d'E/S rien que pour
+    // l'autoload, et la contention d'E/S entre fils fait largement dépasser le timeout par défaut
+    // d'Infection (observé : 225+/238 mutants en faux « timeout » avec 8 fils sur ce montage) ;
+    // lancer Infection depuis une copie du dépôt sur le filesystem Linux natif (ext4) évite le
+    // problème — c'est ainsi que ce rapport a été produit.
+    "threads": "max",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "phpUnit": {
+        "customPath": "vendor/bin/phpunit"
+    },
+    "logs": {
+        // Journal humainement lisible de tous les mutants (dont la section des mutants
+        // échappés), versionné dans le dépôt pour garder une trace exploitable entre deux
+        // exécutions et pouvoir être comparé lors des revues.
+        "text": "mutation-testing/escaped-mutants.txt"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

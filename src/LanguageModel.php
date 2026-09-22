@@ -33,13 +33,20 @@ final class LanguageModel
             );
         }
 
-        if ($this->totalParametersBillions <= 0) {
-            throw new InvalidArgumentException(
-                'Le nombre de paramètres totaux (en milliards) doit être strictement positif.'
-            );
-        }
-
+        // Pas de garde séparée « totalParametersBillions <= 0 » ici : ce cas ne peut jamais se
+        // produire sans être déjà attrapé par la garde ci-dessous, car activeParametersBillions
+        // est nécessairement > 0 à ce stade (garde précédente), et un total <= 0 est alors
+        // toujours < active. Mutant équivalent constaté avec Infection (mutation-testing/) :
+        // affaiblir la borne <= 0 en < 0 ne change aucun comportement observable.
         if ($this->totalParametersBillions < $this->activeParametersBillions) {
+            // Le texte exact de ce message n'est délibérément pas verrouillé par un test : ce
+            // garde-fou ne se déclenche que sur des données de catalogue déjà invalides (aucun
+            // LanguageModel::all() n'atteint ce cas, cf. LanguageModelTest), et son seul lecteur
+            // possible est la personne qui corrige l'appel fautif — le contenu du message n'est
+            // observé par aucun utilisateur de public/index.php. Seul le fait qu'une exception
+            // soit levée est un comportement observable ; c'est ce que testent les méthodes
+            // testZeroTotalParametersThrowsAnException() et
+            // testTotalParametersBelowActiveParametersThrowsAnException() de LanguageModelTest.
             throw new InvalidArgumentException(
                 'Le nombre de paramètres totaux ne peut pas être inférieur au nombre de '
                 . 'paramètres actifs (un modèle ne peut pas activer plus de paramètres qu\'il '
