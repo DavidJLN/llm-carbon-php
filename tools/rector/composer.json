@@ -1,0 +1,24 @@
+{
+    "name": "davidjln/llm-carbon-php-rector",
+    "description": "Rector refactoring rules for llm-carbon-php. Separate Composer project: its dependencies never enter the main composer.json.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "rector/rector": "^2.6",
+        "phpunit/phpunit": "^13.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "LlmCarbon\\": "../../src/",
+            "LlmCarbon\\Rector\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LlmCarbon\\Rector\\Tests\\": "tests/"
+        }
+    }
+}

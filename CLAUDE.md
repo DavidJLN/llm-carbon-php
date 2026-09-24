@@ -98,3 +98,6 @@ En conséquence : ne jamais ajouter, modifier ou approximer une constante numér
 ## Interdits absolus
 
 - **Aucune dépendance externe** : Composer sert uniquement à l'autoloading PSR-4. Ne jamais ajouter de paquet en `require` (production) ou `require-dev` (y compris PHPUnit), ni de bibliothèque JS/CSS externe (CDN compris). Le projet doit rester exécutable sans rien télécharger d'autre que sa propre autoload.
+  Seule exception : `tools/rector/`, projet Composer séparé (son propre `composer.json`, son
+  `vendor/` ignoré) qui porte les règles de refactoring Rector. Ses dépendances n'entrent jamais
+  dans le `composer.json` racine, et le projet s'exécute sans lui.

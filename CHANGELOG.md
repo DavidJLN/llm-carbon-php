@@ -21,6 +21,10 @@ Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
   `@source <URL> <année>` dans son docblock. Lignes `@source` ajoutées aux 9 constantes
   concernées (EcoLogits 0.4.0, publiée le 2024-08-29 ; Transformers Math 101, publié le
   2023-04-18).
+- Outil de refactoring `tools/rector/` (projet Composer séparé, hors du `composer.json` racine) :
+  règle `SimplifiedToFullCalculatorRector`, qui remplace le calculateur simplifié par le
+  calculateur complet quand le code s'y prête, et refuse en le signalant sinon. La forme du code
+  est préservée, pas les chiffres (le modèle complet donne une énergie plus élevée).
 
 ### Changed
 
