@@ -81,6 +81,50 @@ jobs:
       - name: Exécuter la suite de tests
         run: vendor/bin/phpunit
 
+  coverage:
+    name: Couverture de code (seuil 100 %)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          coverage: pcov
+
+      - name: Installer les dépendances
+        run: composer install --prefer-dist --no-progress
+
+      - name: Mesurer la couverture de src/
+        run: vendor/bin/phpunit --coverage-text --coverage-clover "$RUNNER_TEMP/clover.xml"
+
+      - name: Vérifier le seuil de couverture des lignes
+        # Seuil fixé à la valeur atteinte lors de sa mise en place (231/231 lignes de src/) :
+        # avec aussi peu de lignes, toute marge laisserait passer une fabrique entière
+        # (EmissionFactor, LanguageModel) sans test. PHPUnit n'ayant pas d'option de seuil
+        # minimal, le rapport Clover est lu ici en PHP pur, sans dépendance supplémentaire.
+        run: |
+          php -r '
+              $minPercent = 100.0;
+              $metrics = simplexml_load_file($argv[1])->project->metrics;
+              $total = (int) $metrics["statements"];
+              $covered = (int) $metrics["coveredstatements"];
+
+              if ($total === 0) {
+                  fwrite(STDERR, "Aucune ligne exécutable mesurée : périmètre <source> de phpunit.xml vide ?\n");
+                  exit(1);
+              }
+
+              $percent = 100 * $covered / $total;
+              printf("Couverture des lignes : %.2f %% (%d/%d), seuil : %.2f %%\n", $percent, $covered, $total, $minPercent);
+
+              if ($percent < $minPercent) {
+                  fwrite(STDERR, "Couverture inférieure au seuil.\n");
+                  exit(1);
+              }
+          ' "$RUNNER_TEMP/clover.xml"
+
   mutation:
     name: Mutation testing (Infection)
     runs-on: ubuntu-latest

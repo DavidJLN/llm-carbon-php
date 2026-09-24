@@ -9,6 +9,14 @@ Tant que la version majeure reste à `0`, l'interface publique (signatures des
 classes de `src/`) peut encore changer sans préavis — voir [la clause 4 de
 Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
 
+## [Unreleased]
+
+### Added
+
+- Seuil de couverture de code dans l'intégration continue (job `coverage` de
+  `.github/workflows/tests.yml`) : la CI échoue si moins de 100 % des lignes de `src/` sont
+  couvertes par les tests.
+
 ## [0.1.1] - 2026-08-31
 
 ### Changed
