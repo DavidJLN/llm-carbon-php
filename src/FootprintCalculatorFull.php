@@ -53,8 +53,10 @@ final class FootprintCalculatorFull
      * Unitless (multiplicative factor).
      * Source: llm_inference.md, formula M_model(P_total,Q) = 1.2 * P_total * Q / 8, which itself
      * cites Transformers Math 101 (https://blog.eleuther.ai/transformer-math/#total-inference-memory).
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
+     * @source https://blog.eleuther.ai/transformer-math/#total-inference-memory 2023 (published 2023-04-18)
      */
-    private const MEMORY_OVERHEAD_FACTOR = 1.2;
+    private const MEMORY_OVERHEAD_RATIO = 1.2;
 
     /**
      * Default number of bits used to represent each model parameter (quantization), in the
@@ -96,12 +98,14 @@ final class FootprintCalculatorFull
      * Multiplicative coefficient (slope) relating the active parameters (in billions) to the
      * generation duration per token, in seconds.
      * Source: llm.py, constant GPU_LATENCY_ALPHA = 8.02e-4; llm_inference.md, "A = 8.02e-4".
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const LATENCY_ALPHA_S_PER_BILLION = 8.02e-4;
 
     /**
      * Constant term (y-intercept) of the generation duration per token, in seconds.
      * Source: llm.py, constant GPU_LATENCY_BETA = 2.23e-2; llm_inference.md, "B = 2.23e-2".
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const LATENCY_BETA_S = 2.23e-2;
 
@@ -112,6 +116,7 @@ final class FootprintCalculatorFull
      * it is the same regression, multiplied here by the number of GPU cards required rather than
      * used alone.
      * Source: llm_inference.md, formula E_GPU/#T_out = alpha * P_active + beta.
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const GPU_ENERGY_ALPHA_WH_PER_BILLION = 8.91e-5;
 
@@ -119,6 +124,7 @@ final class FootprintCalculatorFull
      * Constant term (y-intercept) of the energy consumed by a single GPU card per generated
      * token, in Wh.
      * Source: llm_inference.md, formula E_GPU/#T_out = alpha * P_active + beta.
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const GPU_ENERGY_BETA_WH = 1.43e-3;
 
@@ -133,8 +139,9 @@ final class FootprintCalculatorFull
      * 1.16 for Mistral): this project therefore applies this value uniformly, including to
      * models not hosted by OpenAI (e.g. Llama 3.1 70B).
      * Source: llm.py, constant DATACENTER_PUE = 1.2; llm_inference.md, "PUE = 1.2".
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
-    private const PUE_DATACENTER = 1.2;
+    private const PUE_DATACENTER_RATIO = 1.2;
 
     public function calculate(
         LanguageModel $languageModel,
@@ -149,7 +156,7 @@ final class FootprintCalculatorFull
         // overhead. totalParametersBillions * 1e9 = number of parameters; * bits / 8 = bytes;
         // / 1e9 = GB. The two 1e9 factors cancel out: the result is expressed directly in
         // billions of parameters.
-        $requiredMemoryGb = self::MEMORY_OVERHEAD_FACTOR
+        $requiredMemoryGb = self::MEMORY_OVERHEAD_RATIO
             * $languageModel->totalParametersBillions
             * self::DEFAULT_QUANTIZATION_BITS
             / 8;
@@ -168,7 +175,7 @@ final class FootprintCalculatorFull
         $gpuEnergyPerCardWh = (self::GPU_ENERGY_ALPHA_WH_PER_BILLION * $languageModel->activeParametersBillions
             + self::GPU_ENERGY_BETA_WH) * $generatedTokens;
 
-        $totalEnergyWh = self::PUE_DATACENTER
+        $totalEnergyWh = self::PUE_DATACENTER_RATIO
             * ($serverEnergyWh + $gpuCards * $gpuEnergyPerCardWh);
 
         $emissionsGco2eq = ($totalEnergyWh / 1000) * $emissionFactor->gCo2eqPerKwh;

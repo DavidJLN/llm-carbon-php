@@ -16,6 +16,18 @@ Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
 - Seuil de couverture de code dans l'intégration continue (job `coverage` de
   `.github/workflows/tests.yml`) : la CI échoue si moins de 100 % des lignes de `src/` sont
   couvertes par les tests.
+- Convention vérifiée par un test (`tests/FloatConstantConventionTest.php`) : toute constante
+  flottante de `src/` porte une unité reconnue en suffixe de son nom et une ligne
+  `@source <URL> <année>` dans son docblock. Lignes `@source` ajoutées aux 9 constantes
+  concernées (EcoLogits 0.4.0, publiée le 2024-08-29 ; Transformers Math 101, publié le
+  2023-04-18).
+
+### Changed
+
+- Renommage des constantes privées sans unité dans leur nom : `PUE_DATACENTER` →
+  `PUE_DATACENTER_RATIO` (`FootprintCalculatorSimplified`, `FootprintCalculatorFull`),
+  `MEMORY_OVERHEAD_FACTOR` → `MEMORY_OVERHEAD_RATIO` (`FootprintCalculatorFull`). Valeurs
+  inchangées.
 
 ## [0.1.1] - 2026-08-31
 

@@ -63,9 +63,16 @@ obligatoires : `type` (`ProvenanceType::MeasuredAndPublished` ou `ProvenanceType
 exemple un `urlSource` séparé) à côté de `Provenance` sur ces deux classes : deux sources de
 vérité pour la même chose finissent toujours par diverger — une seule provenance par valeur.
 
-Pour les coefficients privés de `FootprintCalculator` (alpha, beta, PUE), qui ne sont pas des
-objets-valeurs construits depuis l'extérieur, le commentaire/docblock citant la source reste la
-convention à suivre.
+Pour les coefficients privés des calculateurs (alpha, beta, PUE), qui ne sont pas des
+objets-valeurs construits depuis l'extérieur, le docblock citant la source reste la convention à
+suivre. Elle est vérifiée par `tests/FloatConstantConventionTest.php` pour toute constante de
+classe flottante de `src/` :
+- son nom se termine par une unité reconnue : `_WH`, `_KWH`, `_W`, `_G_CO2E_PER_KWH`, `_BITS`,
+  `_GO`, `_S`, `_RATIO`, `_SANS_UNITE`, éventuellement suivie de `_PER_BILLION` (pente par
+  milliard de paramètres actifs, ex. `_WH_PER_BILLION`). Ne jamais choisir `_RATIO` ou
+  `_SANS_UNITE` pour faire passer une grandeur qui a une unité : étendre la liste à la place ;
+- son docblock contient une ligne `@source <URL> <année>` sur une seule ligne, l'année en dehors
+  de l'URL (millésime vérifié de la source, pas une estimation).
 
 **Mesure ou hypothèse — jamais l'inverse :**
 - `ProvenanceType::MeasuredAndPublished` : la source publie la valeur telle quelle ; la note rappelle

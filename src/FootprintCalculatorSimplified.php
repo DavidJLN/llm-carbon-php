@@ -23,6 +23,7 @@ final class FootprintCalculatorSimplified
      * Source: https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md
      * (formula E_GPU/#T_out = alpha * P_active + beta) and
      * https://github.com/mlco2/ecologits/blob/0.4.0/ecologits/impacts/llm.py (exact values).
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const ECOLOGITS_ENERGY_ALPHA_WH_PER_BILLION = 8.91e-5;
 
@@ -30,6 +31,7 @@ final class FootprintCalculatorSimplified
      * Constant term (y-intercept) of the GPU energy consumed per generated token, in Wh.
      * In decimal notation, 1.43e-3 equals 0.00143.
      * Source: https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
     private const ECOLOGITS_ENERGY_BETA_WH = 1.43e-3;
 
@@ -45,8 +47,9 @@ final class FootprintCalculatorSimplified
      * models not hosted by OpenAI (e.g. Llama 3.1 70B).
      * Source: https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md
      * ("We typically use a PUE = 1.2 for hyperscaler data centers or supercomputers.")
+     * @source https://github.com/mlco2/ecologits/blob/0.4.0/docs/methodology/llm_inference.md 2024 (EcoLogits 0.4.0, released 2024-08-29)
      */
-    private const PUE_DATACENTER = 1.2;
+    private const PUE_DATACENTER_RATIO = 1.2;
 
     public function calculate(LanguageModel $languageModel, EmissionFactor $emissionFactor, int $generatedTokens): Footprint
     {
@@ -57,7 +60,7 @@ final class FootprintCalculatorSimplified
         $energyPerTokenWh = self::ECOLOGITS_ENERGY_ALPHA_WH_PER_BILLION * $languageModel->activeParametersBillions
             + self::ECOLOGITS_ENERGY_BETA_WH;
 
-        $totalEnergyWh = $energyPerTokenWh * $generatedTokens * self::PUE_DATACENTER;
+        $totalEnergyWh = $energyPerTokenWh * $generatedTokens * self::PUE_DATACENTER_RATIO;
 
         $emissionsGco2eq = ($totalEnergyWh / 1000) * $emissionFactor->gCo2eqPerKwh;
 
