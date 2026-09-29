@@ -124,7 +124,10 @@ final class SimplifiedToFullCalculatorRector extends AbstractRector
                     : null;
             }
 
-            if (!$this->isObjectType($current, $simplifiedType)) {
+            // isObjectType() strips `false` before comparing ("falsy nullable"): an expression
+            // typed `false` becomes `never`, a subtype of every class, and would be taken for a
+            // calculator. Requiring a possibly-object type keeps `Simplified|false` but not `false`.
+            if ($this->getType($current)->isObject()->no() || !$this->isObjectType($current, $simplifiedType)) {
                 return null;
             }
             $simplifiedExpressions[spl_object_id($current)] = $current;

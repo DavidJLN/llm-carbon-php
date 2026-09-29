@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use LlmCarbon\Rector\SimplifiedToFullCalculatorRector;
 use Rector\Config\RectorConfig;
 
-return RectorConfig::configure()
-    ->withRules([SimplifiedToFullCalculatorRector::class]);
+// The tests run the config shipped to users, not a copy of it.
+return static function (RectorConfig $rectorConfig): void {
+    $rectorConfig->import(__DIR__ . '/../../../config/config.php');
+};
