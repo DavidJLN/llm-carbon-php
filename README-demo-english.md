@@ -69,7 +69,8 @@ The detailed figures for each step of both models are displayed on the
 page, below the results, along with two comparison tables with all other
 parameters held equal: by hosting zone (France, Europe, United States,
 World) and by catalog model (Llama 3.1 70B, GPT-4, GPT-4o,
-Qwen3-235B-A22B) — this second table also shows the number of GPU cards
+Qwen3-235B-A22B, Kimi K2, Mistral Large 2, Grok-1, Claude Sonnet 4.6,
+Claude Opus 4.8, Claude Haiku 4.5) — this second table also shows the number of GPU cards
 required and the gap (total, of which server, of which cards) per model.
 The French emission factor has a double attribution: [ADEME Base
 Empreinte](https://base-empreinte.ademe.fr/) and [EcoLogits v0.4.0
@@ -96,7 +97,11 @@ Most catalog values are measured and published by their source (green
 badge "✓ Measured and published"), including **Qwen3-235B-A22B**
 (Alibaba), an open model for which the Qwen team officially publishes the
 235 billion total parameters and the 22 billion parameters activated per
-token. The two exceptions concern OpenAI models (orange badge "⚠
+token, **Kimi K2** (Moonshot AI: 1,000 billion total, 32 billion active),
+**Mistral Large 2** (123 billion, dense) and **Grok-1** (xAI: 314 billion,
+25% active, i.e. 78.5 billion — a 2023 base model, *not* the Grok
+currently served by xAI, whose parameters are not published). The
+exceptions concern the OpenAI and Anthropic models (orange badge "⚠
 Hypothesis"), whose architecture is never published:
 
 - **GPT-4** — active parameters (176 billion retained): follows the
@@ -118,6 +123,14 @@ Hypothesis"), whose architecture is never published:
   active parameters; the upper bound (132 billion, exactly x3) multiplies
   the energy per token from the regression by about 2.47, and the
   **total** energy of the complete model by only about 2.40.
+- **Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5** — Anthropic
+  publishes neither the architecture, nor the parameter count, nor the
+  energy per request. The values come from the EcoLogits 0.11.1 dataset
+  (warning `model-arch-not-released`), lower bound retained: Sonnet 4.6,
+  44 to 132 billion active / 440 total (same range as GPT-4o: x2.47 on
+  the regression, x2.40 on total energy); Opus 4.8, 67 to 200 billion
+  active / 670 total (x2.60, x2.55); Haiku 4.5, assumed dense, 10 to 35
+  billion (x1.96, x1.87 — still a single GPU card).
 
 **An input range is not an output range.** The two examples above (x3 in
 active parameters → x2.8/x2.5 on the regression alone → x2.81/x2.40 on the

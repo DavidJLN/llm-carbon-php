@@ -190,6 +190,42 @@ final class FootprintCalculatorFullTest extends TestCase
         self::assertEqualsWithDelta(2.806530, $highEnergy / $lowEnergy, 0.00001);
     }
 
+    public function testAnInputRangeIsNotAnOutputRangeForClaudeOpus48(): void
+    {
+        // Locks the ratio quoted in LanguageModel::claudeOpus48(): 67 to 200 billion active
+        // parameters (670 total, 6 GPU cards either way) -> x2.55 in total energy, versus x2.60
+        // for the GPU energy regression alone. (Claude Sonnet 4.6 shares GPT-4o's EcoLogits
+        // range, 44 to 132 / 440, hence the same x2.40 locked above.)
+        $calculator = new FootprintCalculatorFull();
+        $factor = EmissionFactor::france();
+
+        $lowModel = new LanguageModel('t', 67, $this->testProvenance(), 670, $this->testProvenance());
+        $highModel = new LanguageModel('t', 200, $this->testProvenance(), 670, $this->testProvenance());
+
+        $low = $calculator->calculate($lowModel, $factor, 500);
+        $high = $calculator->calculate($highModel, $factor, 500);
+
+        self::assertSame(6, $low->gpuCards);
+        self::assertSame(6, $high->gpuCards);
+        self::assertEqualsWithDelta(2.549237, $high->totalEnergyWh / $low->totalEnergyWh, 0.00001);
+    }
+
+    public function testAnInputRangeIsNotAnOutputRangeForClaudeHaiku45(): void
+    {
+        // Locks the ratio quoted in LanguageModel::claudeHaiku45(): dense model, 10 to 35 billion
+        // parameters (6 to 21 GB, still a single GPU card) -> x1.87 in total energy, versus
+        // x1.96 for the GPU energy regression alone.
+        $calculator = new FootprintCalculatorFull();
+        $factor = EmissionFactor::france();
+
+        $low = $calculator->calculate(LanguageModel::dense('t', 10, $this->testProvenance()), $factor, 500);
+        $high = $calculator->calculate(LanguageModel::dense('t', 35, $this->testProvenance()), $factor, 500);
+
+        self::assertSame(1, $low->gpuCards);
+        self::assertSame(1, $high->gpuCards);
+        self::assertEqualsWithDelta(1.866590, $high->totalEnergyWh / $low->totalEnergyWh, 0.00001);
+    }
+
     public function testZeroGeneratedTokensThrowsAnException(): void
     {
         $this->expectException(InvalidArgumentException::class);

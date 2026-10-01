@@ -55,7 +55,8 @@ echo $footprint->emissionsGco2eq, ' gCO2eq';
 `totalEnergyWh` et `emissionsGco2eq`. `LanguageModel` et `EmissionFactor`
 exposent chacun une fabrique par valeur du catalogue (voir `all()` sur
 chaque classe pour la liste complète : modèles `llama31_70b()`, `gpt4()`,
-`gpt4o()`, `qwen3_235b_a22b()` ; zones `france()`, `europe()`, `unitedStates()`,
+`gpt4o()`, `qwen3_235b_a22b()`,
+`kimiK2()`, `mistralLarge2()`, `grok1()`, `claudeSonnet46()`, `claudeOpus48()`, `claudeHaiku45()` ; zones `france()`, `europe()`, `unitedStates()`,
 `world()`).
 
 Une seconde implémentation, `FootprintCalculatorFull`, a la même
@@ -95,8 +96,8 @@ Le périmètre est strictement celui de **l'inférence**, à partir du seul
   fournisseur du modèle, ou hypothèse reconstituée faute de publication —
   voir `src/ProvenanceType.php`) et le résultat qui en dépend hérite de ce
   statut, mais le paquet ne calcule aucune marge d'erreur ni fourchette de
-  sortie : pour les deux modèles propriétaires du catalogue (GPT-4, GPT-4o),
-  dont les paramètres ne sont pas publiés, une hypothèse conservatrice
+  sortie : pour les modèles propriétaires du catalogue (GPT-4, GPT-4o, Claude
+  Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5), dont les paramètres ne sont pas publiés, une hypothèse conservatrice
   (borne basse) est retenue plutôt qu'une fourchette.
 
 ## Sources et millésimes
@@ -118,11 +119,31 @@ Le périmètre est strictement celui de **l'inférence**, à partir du seul
 - **Qwen3-235B-A22B** (235 milliards de paramètres totaux, 22 milliards
   activés) : [annonce officielle Qwen3,
   2025-04-29](https://qwenlm.github.io/blog/qwen3/).
+- **Kimi K2** (1 000 milliards de paramètres totaux, 32 milliards activés) :
+  [dépôt officiel Moonshot AI, 2025-07](https://github.com/moonshotai/kimi-k2).
+- **Mistral Large 2** (123 milliards de paramètres, dense) : [annonce
+  officielle Mistral AI, 2024-07-24](https://mistral.ai/news/mistral-large-2407).
+- **Grok-1** (314 milliards de paramètres totaux, 25 % actifs, soit 78,5
+  milliards) : [annonce officielle xAI, 2024-03-17](https://x.ai/news/grok-os).
+  Grok-1 est un modèle de base de 2023, **pas** le Grok actuellement servi
+  par xAI (Grok 3, Grok 4…), dont les paramètres ne sont pas publiés.
+- **Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5** (Anthropic ne
+  publie ni paramètres ni énergie par requête, valeurs typées
+  `Hypothesis`) : [jeu de données des modèles d'EcoLogits
+  0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json).
 - **GPT-4 et GPT-4o** (paramètres non publiés par OpenAI, valeurs typées
   `Hypothesis`) : [méthodologie EcoLogits pour les modèles
   propriétaires](https://ecologits.ai/latest/methodology/proprietary_models/)
   et [jeu de données des modèles d'EcoLogits
   0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json).
+
+Parmi les fournisseurs du catalogue, seul Mistral AI publie une empreinte
+mesurée : son [analyse de cycle de vie de Mistral Large 2, 2025-07-22](https://mistral.ai/news/our-contribution-to-a-global-environmental-standard-for-ai)
+(avec Carbone 4 et l'ADEME) annonce 1,14 gCO2eq, 45 mL d'eau et 0,16 mg Sb eq
+pour une réponse de 400 tokens, hors terminaux des utilisateurs. Elle n'est
+citée ici qu'à titre de comparaison, pas comme entrée du calcul : son
+périmètre (cycle de vie complet, fabrication du matériel et entraînement
+inclus) diffère de celui de ce projet (énergie d'inférence seule).
 
 Le détail complet de chaque source (URL, millésime, ce qu'elle affirme
 exactement) est accessible par le code via `LanguageModel::$provenance` /

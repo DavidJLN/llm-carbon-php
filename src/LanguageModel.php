@@ -205,6 +205,191 @@ final class LanguageModel
     }
 
     /**
+     * Kimi K2 (Moonshot AI), open Mixture-of-Experts model: Moonshot AI officially publishes, in
+     * the model summary of its repository, the total parameter count and the number of parameters
+     * activated per token — values measured and published, like Qwen3-235B-A22B.
+     */
+    public static function kimiK2(): self
+    {
+        $provenance = new Provenance(
+            ProvenanceType::MeasuredAndPublished,
+            'https://github.com/moonshotai/kimi-k2',
+            '2025-07',
+            'Dépôt officiel Moonshot AI, tableau « Model Summary » : « Architecture: '
+            . 'Mixture-of-Experts (MoE) ; Total Parameters: 1T ; Activated Parameters: 32B ; '
+            . 'Number of Experts: 384 ; Selected Experts per Token: 8 », soit 1 000 milliards de '
+            . 'paramètres totaux et 32 milliards de paramètres actifs par token.'
+        );
+
+        return new self('Kimi K2 (Moonshot AI)', 32, $provenance, 1000, $provenance);
+    }
+
+    /**
+     * Mistral Large 2 (Mistral AI), open-weight dense model: Mistral AI officially publishes its
+     * parameter count. It is also the only model in the catalog whose provider has published a
+     * life-cycle analysis of its emissions (see README.md) — that figure is not an input of this
+     * calculation, whose scope differs.
+     */
+    public static function mistralLarge2(): self
+    {
+        return self::dense(
+            'Mistral Large 2 (Mistral AI)',
+            123,
+            new Provenance(
+                ProvenanceType::MeasuredAndPublished,
+                'https://mistral.ai/news/mistral-large-2407',
+                '2024-07-24',
+                'Annonce officielle Mistral AI : « its size of 123 billion parameters allows it to '
+                . 'run at large throughput on a single node ». L\'annonce ne qualifie pas explicitement l\'architecture ; le jeu de '
+                . 'données EcoLogits 0.11.1 (models.json, entrée '
+                . '« mistralai/Mistral-Large-Instruct-2407 ») la décrit comme dense (« type »: '
+                . '« dense », 122,61 milliards), soit 123 milliards de paramètres actifs et '
+                . '123 milliards de paramètres totaux.'
+            )
+        );
+    }
+
+    /**
+     * Grok-1 (xAI), open-weight Mixture-of-Experts base model released in March 2024: xAI
+     * officially publishes its total parameter count and the fraction of weights active per
+     * token. WARNING: Grok-1 is NOT the Grok currently served by xAI (Grok 3, Grok 4...), whose
+     * architecture and parameter count are not published — this entry must not be read as an
+     * estimate of today's Grok.
+     */
+    public static function grok1(): self
+    {
+        $provenance = new Provenance(
+            ProvenanceType::MeasuredAndPublished,
+            'https://x.ai/news/grok-os',
+            '2024-03-17',
+            'Annonce officielle xAI (publication des poids de Grok-1) : « 314B parameter '
+            . 'Mixture-of-Experts model with 25% of the weights active on a given token », '
+            . 'modèle de base dont le pré-entraînement s\'est achevé en octobre 2023. Les 78,5 '
+            . 'milliards de paramètres actifs retenus ici sont le produit direct des deux valeurs '
+            . 'publiées (314 × 0,25 = 78,5). ATTENTION : Grok-1 n\'est pas le Grok actuellement '
+            . 'servi par xAI (Grok 3, Grok 4…), dont ni l\'architecture ni le nombre de paramètres '
+            . 'ne sont publiés ; ce chiffre ne doit pas être lu comme une estimation du Grok '
+            . 'actuel.'
+        );
+
+        return new self('Grok-1 (xAI, 2023)', 78.5, $provenance, 314, $provenance);
+    }
+
+    /**
+     * Claude Sonnet 4.6 (Anthropic), proprietary model: Anthropic publishes neither the
+     * architecture, nor the parameter count, nor the energy consumed per request. Both values
+     * retained here are hypotheses taken from the EcoLogits dataset, not measurements.
+     */
+    public static function claudeSonnet46(): self
+    {
+        return new self(
+            'Claude Sonnet 4.6 (Anthropic)',
+            44,
+            new Provenance(
+                ProvenanceType::Hypothesis,
+                'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
+                '0.11.1',
+                'Claude Sonnet 4.6 est un modèle propriétaire : Anthropic ne publie ni son '
+                . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+                . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-sonnet-4-6 » : '
+                . 'architecture MoE, "active": {"min": 44, "max": 132} (milliards), avertissement '
+                . '"model-arch-not-released" (architecture non publiée, donc estimation). La valeur '
+                . 'retenue ici (44 milliards) est la borne basse de cette fourchette, la plus '
+                . 'conservatrice, par cohérence avec les autres modèles propriétaires ; la borne '
+                . 'haute (132 milliards, exactement 3 fois plus de paramètres actifs) donne '
+                . 'environ 2,5 fois plus d\'énergie par token dans la seule régression EcoLogits '
+                . '((8,91e-5 × 132 + 1,43e-3) / (8,91e-5 × 44 + 1,43e-3) ≈ 2,47). ATTENTION, une '
+                . 'fourchette d\'entrée n\'est pas une fourchette de sortie : avec le modèle COMPLET '
+                . '(mémoire et cartes GPU inchangées, déterminées par les paramètres TOTAUX, pas '
+                . 'actifs), passer de la borne basse à la borne haute ne multiplie l\'énergie '
+                . 'totale que par environ 2,40.'
+            ),
+            440,
+            new Provenance(
+                ProvenanceType::Hypothesis,
+                'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
+                '0.11.1',
+                'Anthropic n\'a jamais publié le nombre total de paramètres de Claude Sonnet 4.6. '
+                . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-sonnet-4-6 » : "total": '
+                . '440 (milliards), avertissement "model-arch-not-released". Cette valeur n\'est ni '
+                . 'mesurée ni publiée officiellement : c\'est l\'estimation retenue par EcoLogits, à '
+                . 'défaut de meilleure source.'
+            )
+        );
+    }
+
+    /**
+     * Claude Opus 4.8 (Anthropic), proprietary model: same situation as Claude Sonnet 4.6 —
+     * both values retained here are hypotheses taken from the EcoLogits dataset.
+     */
+    public static function claudeOpus48(): self
+    {
+        return new self(
+            'Claude Opus 4.8 (Anthropic)',
+            67,
+            new Provenance(
+                ProvenanceType::Hypothesis,
+                'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
+                '0.11.1',
+                'Claude Opus 4.8 est un modèle propriétaire : Anthropic ne publie ni son '
+                . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+                . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-opus-4-8 » : '
+                . 'architecture MoE, "active": {"min": 67, "max": 200} (milliards), avertissement '
+                . '"model-arch-not-released" (architecture non publiée, donc estimation). La valeur '
+                . 'retenue ici (67 milliards) est la borne basse de cette fourchette, la plus '
+                . 'conservatrice ; la borne haute (200 milliards, environ 3 fois plus de paramètres '
+                . 'actifs) donne environ 2,6 fois plus d\'énergie par token dans la seule '
+                . 'régression EcoLogits ((8,91e-5 × 200 + 1,43e-3) / (8,91e-5 × 67 + 1,43e-3) ≈ '
+                . '2,60). ATTENTION, une fourchette d\'entrée n\'est pas une fourchette de sortie : '
+                . 'avec le modèle COMPLET (mémoire et cartes GPU inchangées, déterminées par les '
+                . 'paramètres TOTAUX, pas actifs), passer de la borne basse à la borne haute ne '
+                . 'multiplie l\'énergie totale que par environ 2,55.'
+            ),
+            670,
+            new Provenance(
+                ProvenanceType::Hypothesis,
+                'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
+                '0.11.1',
+                'Anthropic n\'a jamais publié le nombre total de paramètres de Claude Opus 4.8. '
+                . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-opus-4-8 » : "total": '
+                . '670 (milliards), avertissement "model-arch-not-released". Cette valeur n\'est ni '
+                . 'mesurée ni publiée officiellement : c\'est l\'estimation retenue par EcoLogits, à '
+                . 'défaut de meilleure source.'
+            )
+        );
+    }
+
+    /**
+     * Claude Haiku 4.5 (Anthropic), proprietary model: the EcoLogits dataset assumes a dense
+     * architecture, so the single hypothesis covers both active and total parameters.
+     */
+    public static function claudeHaiku45(): self
+    {
+        return self::dense(
+            'Claude Haiku 4.5 (Anthropic)',
+            10,
+            new Provenance(
+                ProvenanceType::Hypothesis,
+                'https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json',
+                '0.11.1',
+                'Claude Haiku 4.5 est un modèle propriétaire : Anthropic ne publie ni son '
+                . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+                . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-haiku-4-5-20251001 » : '
+                . 'architecture dense, "parameters": {"min": 10, "max": 35} (milliards), '
+                . 'avertissement "model-arch-not-released" (architecture non publiée, donc '
+                . 'estimation). Modèle supposé dense : la même valeur sert de paramètres actifs et '
+                . 'totaux. La valeur retenue ici (10 milliards) est la borne basse, la plus '
+                . 'conservatrice ; la borne haute (35 milliards, 3,5 fois plus) donne environ 2 fois '
+                . 'plus d\'énergie par token dans la seule régression EcoLogits ((8,91e-5 × 35 + '
+                . '1,43e-3) / (8,91e-5 × 10 + 1,43e-3) ≈ 1,96). Avec le modèle COMPLET, la borne '
+                . 'haute augmente aussi la mémoire requise (de 6 à 21 Go), mais le modèle tient '
+                . 'toujours sur une seule carte GPU : l\'énergie totale n\'est multipliée que par '
+                . 'environ 1,87.'
+            )
+        );
+    }
+
+    /**
      * All models in the catalog, for comparative display or verification (e.g. every model must
      * cite a provenance).
      *
@@ -217,6 +402,12 @@ final class LanguageModel
             self::gpt4(),
             self::gpt4o(),
             self::qwen3_235b_a22b(),
+            self::kimiK2(),
+            self::mistralLarge2(),
+            self::grok1(),
+            self::claudeSonnet46(),
+            self::claudeOpus48(),
+            self::claudeHaiku45(),
         ];
     }
 }

@@ -74,7 +74,8 @@ Die detaillierten Zahlen zu jedem Schritt beider Modelle werden auf der
 Seite unterhalb der Ergebnisse angezeigt, zusammen mit zwei
 Vergleichstabellen bei sonst gleichen Parametern: nach Hosting-Zone
 (Frankreich, Europa, USA, Welt) und nach Katalogmodell (Llama 3.1 70B,
-GPT-4, GPT-4o, Qwen3-235B-A22B) — diese zweite Tabelle zeigt zusätzlich
+GPT-4, GPT-4o, Qwen3-235B-A22B, Kimi K2, Mistral Large 2, Grok-1, Claude
+Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5) — diese zweite Tabelle zeigt zusätzlich
 die Anzahl der benötigten GPU-Karten und die Abweichung (gesamt, davon
 Server, davon Karten) pro Modell. Der französische Emissionsfaktor hat
 eine doppelte Zuordnung: [ADEME Base
@@ -103,9 +104,14 @@ Die meisten Katalogwerte sind gemessen und von ihrer Quelle veröffentlicht
 (grünes Abzeichen „✓ Gemessen und veröffentlicht"), einschließlich
 **Qwen3-235B-A22B** (Alibaba), einem offenen Modell, für das das
 Qwen-Team offiziell die 235 Milliarden Gesamtparameter und die 22
-Milliarden pro Token aktivierten Parameter veröffentlicht. Die beiden
-Ausnahmen betreffen OpenAI-Modelle (oranges Abzeichen „⚠ Hypothese"),
-deren Architektur nie veröffentlicht wird:
+Milliarden pro Token aktivierten Parameter veröffentlicht, **Kimi K2**
+(Moonshot AI: 1.000 Milliarden gesamt, 32 Milliarden aktiv), **Mistral
+Large 2** (123 Milliarden, dicht) und **Grok-1** (xAI: 314 Milliarden,
+davon 25 % aktiv, also 78,5 Milliarden — ein Basismodell von 2023, *nicht*
+das derzeit von xAI angebotene Grok, dessen Parameter nicht veröffentlicht
+sind). Die Ausnahmen betreffen die Modelle von OpenAI und Anthropic
+(oranges Abzeichen „⚠ Hypothese"), deren Architektur nie veröffentlicht
+wird:
 
 - **GPT-4** — aktive Parameter (176 Milliarden angenommen): folgt der
   EcoLogits-Methode für proprietäre Modelle — ausgehend von einer
@@ -128,6 +134,15 @@ deren Architektur nie veröffentlicht wird:
   Parameter); die obere Grenze (132 Milliarden, genau x3) vervielfacht die
   Energie pro Token der Regression um etwa das 2,47-Fache, und die
   **Gesamt**-Energie des vollständigen Modells nur um etwa das 2,40-Fache.
+- **Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5** — Anthropic
+  veröffentlicht weder die Architektur noch die Parameterzahl noch die
+  Energie pro Anfrage. Die Werte stammen aus dem Datensatz von EcoLogits
+  0.11.1 (Warnung `model-arch-not-released`), untere Grenze zugrunde
+  gelegt: Sonnet 4.6, 44 bis 132 Milliarden aktiv / 440 gesamt (gleiche
+  Spanne wie GPT-4o: x2,47 bei der Regression, x2,40 bei der
+  Gesamtenergie); Opus 4.8, 67 bis 200 Milliarden aktiv / 670 gesamt
+  (x2,60, x2,55); Haiku 4.5, als dicht angenommen, 10 bis 35 Milliarden
+  (x1,96, x1,87 — weiterhin eine einzige GPU-Karte).
 
 **Eine Eingabespanne ist keine Ausgabespanne.** Die beiden obigen
 Beispiele (x3 bei den aktiven Parametern → x2,8/x2,5 bei der Regression

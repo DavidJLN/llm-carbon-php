@@ -40,8 +40,10 @@ Aucune autre commande n'est configurée dans ce dépôt (pas de build, pas de li
   nullables (le constructeur lève si l'un d'eux est vide) : une valeur ne peut pas être construite
   sans provenance complète.
 - `src/LanguageModel.php` — objet-valeur `readonly` : nom du modèle, paramètres actifs (en
-  milliards), `Provenance` ; expose les fabriques statiques `llama31_70b()`, `gpt4()` (modèle
-  propriétaire, provenance de type `Hypothesis`), et `all()`.
+  milliards), `Provenance` ; expose les fabriques statiques `llama31_70b()`, `gpt4()`, `gpt4o()`,
+  `qwen3_235b_a22b()`, `kimiK2()`, `mistralLarge2()`, `grok1()`, `claudeSonnet46()`,
+  `claudeOpus48()`, `claudeHaiku45()` (GPT et Claude : modèles propriétaires, provenance de type
+  `Hypothesis`), et `all()`.
 - `src/EmissionFactor.php` — objet-valeur `readonly` : zone géographique, facteur d'émission
   (gCO2eq/kWh), `Provenance` ; expose les fabriques statiques `france()`, `europe()`,
   `unitedStates()`, `world()`, et `all()`.

@@ -57,7 +57,8 @@ zurück (`src/Footprint.php`), das drei Werte liefert: `energyPerTokenWh`,
 `totalEnergyWh` und `emissionsGco2eq`. `LanguageModel` und
 `EmissionFactor` bieten jeweils eine Factory-Methode pro Katalogwert (siehe
 `all()` in jeder Klasse für die vollständige Liste: Modelle
-`llama31_70b()`, `gpt4()`, `gpt4o()`, `qwen3_235b_a22b()`; Zonen
+`llama31_70b()`, `gpt4()`, `gpt4o()`, `qwen3_235b_a22b()`,
+`kimiK2()`, `mistralLarge2()`, `grok1()`, `claudeSonnet46()`, `claudeOpus48()`, `claudeHaiku45()`; Zonen
 `france()`, `europe()`, `unitedStates()`, `world()`).
 
 Eine zweite Implementierung, `FootprintCalculatorFull`, hat dieselbe
@@ -98,8 +99,8 @@ von der **Anzahl der als Ausgabe generierten Tokens**:
   Modellanbieter, oder eine rekonstruierte Hypothese mangels
   Veröffentlichung — siehe `src/ProvenanceType.php`), und das davon
   abhängige Ergebnis erbt diesen Status, aber das Paket berechnet keine
-  Fehlermarge oder Ergebnisspanne: für die beiden proprietären Modelle im
-  Katalog (GPT-4, GPT-4o), deren Parameter nicht veröffentlicht sind, wird
+  Fehlermarge oder Ergebnisspanne: für die proprietären Modelle im Katalog
+  (GPT-4, GPT-4o, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5), deren Parameter nicht veröffentlicht sind, wird
   eine konservative Hypothese (untere Grenze) statt einer Spanne
   verwendet.
 
@@ -122,11 +123,32 @@ von der **Anzahl der als Ausgabe generierten Tokens**:
 - **Qwen3-235B-A22B** (235 Milliarden Gesamtparameter, 22 Milliarden
   aktiviert): [offizielle Qwen3-Ankündigung,
   29.04.2025](https://qwenlm.github.io/blog/qwen3/).
+- **Kimi K2** (1.000 Milliarden Gesamtparameter, 32 Milliarden aktiviert):
+  [offizielles Repository von Moonshot AI, 07.2025](https://github.com/moonshotai/kimi-k2).
+- **Mistral Large 2** (123 Milliarden Parameter, dicht): [offizielle
+  Ankündigung von Mistral AI, 24.07.2024](https://mistral.ai/news/mistral-large-2407).
+- **Grok-1** (314 Milliarden Gesamtparameter, davon 25 % aktiv, also 78,5
+  Milliarden): [offizielle Ankündigung von xAI, 17.03.2024](https://x.ai/news/grok-os).
+  Grok-1 ist ein Basismodell von 2023, **nicht** das derzeit von xAI
+  angebotene Grok (Grok 3, Grok 4…), dessen Parameter nicht veröffentlicht sind.
+- **Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5** (Anthropic
+  veröffentlicht weder Parameter noch Energie pro Anfrage, Werte vom Typ
+  `Hypothesis`): [Modell-Datensatz von EcoLogits
+  0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json).
 - **GPT-4 und GPT-4o** (von OpenAI nicht veröffentlichte Parameter, Werte
   vom Typ `Hypothesis`): [EcoLogits-Methodik für proprietäre
   Modelle](https://ecologits.ai/latest/methodology/proprietary_models/)
   und [Modell-Datensatz von EcoLogits
   0.11.1](https://github.com/mlco2/ecologits/blob/0.11.1/ecologits/data/models.json).
+
+Unter den Anbietern des Katalogs veröffentlicht nur Mistral AI einen
+gemessenen Fußabdruck: seine [Lebenszyklusanalyse von Mistral Large 2,
+22.07.2025](https://mistral.ai/news/our-contribution-to-a-global-environmental-standard-for-ai) (mit Carbone 4 und ADEME) nennt 1,14 gCO2eq, 45 mL Wasser
+und 0,16 mg Sb eq für eine Antwort von 400 Tokens, ohne Endgeräte der
+Nutzer. Sie wird hier nur zum Vergleich zitiert, nicht als Eingabewert der
+Berechnung: ihr Umfang (gesamter Lebenszyklus, einschließlich
+Hardwareherstellung und Training) unterscheidet sich von dem dieses
+Projekts (nur Inferenzenergie).
 
 Die vollständigen Details zu jeder Quelle (URL, Datenstand, was sie genau
 behauptet) sind über den Code zugänglich, via `LanguageModel::$provenance`

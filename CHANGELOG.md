@@ -13,6 +13,13 @@ Semantic Versioning](https://semver.org/lang/fr/#spec-item-4).
 
 ### Added
 
+- Six modèles au catalogue (`LanguageModel`) : Kimi K2 (Moonshot AI), Mistral Large 2 et
+  Grok-1 (xAI, modèle de base de 2023, distinct du Grok actuel), dont les paramètres sont
+  publiés par leur éditeur (`MeasuredAndPublished`) ; Claude Sonnet 4.6, Claude Opus 4.8 et
+  Claude Haiku 4.5 (Anthropic), dont les paramètres ne sont pas publiés : estimations du jeu de
+  données EcoLogits 0.11.1, typées `Hypothesis`, borne basse retenue et borne haute chiffrée
+  dans la note. Les README citent aussi l'analyse de cycle de vie de Mistral Large 2 (seule
+  empreinte publiée par un éditeur du catalogue), à titre de comparaison seulement.
 - Seuil de couverture de code dans l'intégration continue (job `coverage` de
   `.github/workflows/tests.yml`) : la CI échoue si moins de 100 % des lignes de `src/` sont
   couvertes par les tests.

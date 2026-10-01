@@ -242,9 +242,185 @@ final class LanguageModelTest extends TestCase
         );
     }
 
-    public function testAllReturnsFourModels(): void
+    public function testKimiK2IsMeasuredAndPublishedWithTotalDistinctFromActive(): void
     {
-        self::assertCount(4, LanguageModel::all());
+        $model = LanguageModel::kimiK2();
+
+        self::assertEqualsWithDelta(32.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(1000.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->totalParametersProvenance->type);
+    }
+
+    public function testKimiK2NoteMatchesExactlyWhatTheSourceStates(): void
+    {
+        self::assertSame(
+            'Dépôt officiel Moonshot AI, tableau « Model Summary » : « Architecture: '
+            . 'Mixture-of-Experts (MoE) ; Total Parameters: 1T ; Activated Parameters: 32B ; '
+            . 'Number of Experts: 384 ; Selected Experts per Token: 8 », soit 1 000 milliards de '
+            . 'paramètres totaux et 32 milliards de paramètres actifs par token.',
+            LanguageModel::kimiK2()->provenance->note
+        );
+    }
+
+    public function testMistralLarge2IsADenseMeasuredAndPublishedModel(): void
+    {
+        $model = LanguageModel::mistralLarge2();
+
+        self::assertEqualsWithDelta(123.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(123.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
+    }
+
+    public function testMistralLarge2NoteMatchesExactlyWhatTheSourceStates(): void
+    {
+        self::assertSame(
+            'Annonce officielle Mistral AI : « its size of 123 billion parameters allows it to '
+            . 'run at large throughput on a single node ». L\'annonce ne qualifie pas '
+            . 'explicitement l\'architecture ; le jeu de données EcoLogits 0.11.1 (models.json, '
+            . 'entrée « mistralai/Mistral-Large-Instruct-2407 ») la décrit comme dense (« type »: '
+            . '« dense », 122,61 milliards), soit 123 milliards de paramètres actifs et 123 '
+            . 'milliards de paramètres totaux.',
+            LanguageModel::mistralLarge2()->provenance->note
+        );
+    }
+
+    public function testGrok1IsMeasuredAndPublishedWithAQuarterOfItsWeightsActive(): void
+    {
+        $model = LanguageModel::grok1();
+
+        self::assertEqualsWithDelta(78.5, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(314.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->provenance->type);
+        self::assertSame(ProvenanceType::MeasuredAndPublished, $model->totalParametersProvenance->type);
+    }
+
+    public function testGrok1NoteWarnsItIsNotTheCurrentGrok(): void
+    {
+        // Le calcul 314 × 0,25 et l'avertissement « pas le Grok actuel » font partie de ce que
+        // l'utilisateur doit lire : un extrait amputé de l'un ou l'autre le tromperait.
+        self::assertSame(
+            'Annonce officielle xAI (publication des poids de Grok-1) : « 314B parameter '
+            . 'Mixture-of-Experts model with 25% of the weights active on a given token », '
+            . 'modèle de base dont le pré-entraînement s\'est achevé en octobre 2023. Les 78,5 '
+            . 'milliards de paramètres actifs retenus ici sont le produit direct des deux valeurs '
+            . 'publiées (314 × 0,25 = 78,5). ATTENTION : Grok-1 n\'est pas le Grok actuellement '
+            . 'servi par xAI (Grok 3, Grok 4…), dont ni l\'architecture ni le nombre de paramètres '
+            . 'ne sont publiés ; ce chiffre ne doit pas être lu comme une estimation du Grok '
+            . 'actuel.',
+            LanguageModel::grok1()->provenance->note
+        );
+    }
+
+    public function testClaudeSonnet46IsAMoeHypothesis(): void
+    {
+        $model = LanguageModel::claudeSonnet46();
+
+        self::assertEqualsWithDelta(44.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(440.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::Hypothesis, $model->provenance->type);
+        self::assertSame(ProvenanceType::Hypothesis, $model->totalParametersProvenance->type);
+    }
+
+    public function testClaudeSonnet46NotesMatchExactlyWhatTheSourceStates(): void
+    {
+        self::assertSame(
+            'Claude Sonnet 4.6 est un modèle propriétaire : Anthropic ne publie ni son '
+            . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+            . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-sonnet-4-6 » : '
+            . 'architecture MoE, "active": {"min": 44, "max": 132} (milliards), avertissement '
+            . '"model-arch-not-released" (architecture non publiée, donc estimation). La valeur '
+            . 'retenue ici (44 milliards) est la borne basse de cette fourchette, la plus '
+            . 'conservatrice, par cohérence avec les autres modèles propriétaires ; la borne '
+            . 'haute (132 milliards, exactement 3 fois plus de paramètres actifs) donne '
+            . 'environ 2,5 fois plus d\'énergie par token dans la seule régression EcoLogits '
+            . '((8,91e-5 × 132 + 1,43e-3) / (8,91e-5 × 44 + 1,43e-3) ≈ 2,47). ATTENTION, une '
+            . 'fourchette d\'entrée n\'est pas une fourchette de sortie : avec le modèle COMPLET '
+            . '(mémoire et cartes GPU inchangées, déterminées par les paramètres TOTAUX, pas '
+            . 'actifs), passer de la borne basse à la borne haute ne multiplie l\'énergie '
+            . 'totale que par environ 2,40.',
+            LanguageModel::claudeSonnet46()->provenance->note
+        );
+        self::assertSame(
+            'Anthropic n\'a jamais publié le nombre total de paramètres de Claude Sonnet 4.6. '
+            . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-sonnet-4-6 » : "total": '
+            . '440 (milliards), avertissement "model-arch-not-released". Cette valeur n\'est ni '
+            . 'mesurée ni publiée officiellement : c\'est l\'estimation retenue par EcoLogits, à '
+            . 'défaut de meilleure source.',
+            LanguageModel::claudeSonnet46()->totalParametersProvenance->note
+        );
+    }
+
+    public function testClaudeOpus48IsAMoeHypothesis(): void
+    {
+        $model = LanguageModel::claudeOpus48();
+
+        self::assertEqualsWithDelta(67.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(670.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::Hypothesis, $model->provenance->type);
+        self::assertSame(ProvenanceType::Hypothesis, $model->totalParametersProvenance->type);
+    }
+
+    public function testClaudeOpus48NotesMatchExactlyWhatTheSourceStates(): void
+    {
+        self::assertSame(
+            'Claude Opus 4.8 est un modèle propriétaire : Anthropic ne publie ni son '
+            . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+            . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-opus-4-8 » : '
+            . 'architecture MoE, "active": {"min": 67, "max": 200} (milliards), avertissement '
+            . '"model-arch-not-released" (architecture non publiée, donc estimation). La valeur '
+            . 'retenue ici (67 milliards) est la borne basse de cette fourchette, la plus '
+            . 'conservatrice ; la borne haute (200 milliards, environ 3 fois plus de paramètres '
+            . 'actifs) donne environ 2,6 fois plus d\'énergie par token dans la seule '
+            . 'régression EcoLogits ((8,91e-5 × 200 + 1,43e-3) / (8,91e-5 × 67 + 1,43e-3) ≈ '
+            . '2,60). ATTENTION, une fourchette d\'entrée n\'est pas une fourchette de sortie : '
+            . 'avec le modèle COMPLET (mémoire et cartes GPU inchangées, déterminées par les '
+            . 'paramètres TOTAUX, pas actifs), passer de la borne basse à la borne haute ne '
+            . 'multiplie l\'énergie totale que par environ 2,55.',
+            LanguageModel::claudeOpus48()->provenance->note
+        );
+        self::assertSame(
+            'Anthropic n\'a jamais publié le nombre total de paramètres de Claude Opus 4.8. '
+            . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-opus-4-8 » : "total": '
+            . '670 (milliards), avertissement "model-arch-not-released". Cette valeur n\'est ni '
+            . 'mesurée ni publiée officiellement : c\'est l\'estimation retenue par EcoLogits, à '
+            . 'défaut de meilleure source.',
+            LanguageModel::claudeOpus48()->totalParametersProvenance->note
+        );
+    }
+
+    public function testClaudeHaiku45IsADenseHypothesis(): void
+    {
+        $model = LanguageModel::claudeHaiku45();
+
+        self::assertEqualsWithDelta(10.0, $model->activeParametersBillions, 0.0001);
+        self::assertEqualsWithDelta(10.0, $model->totalParametersBillions, 0.0001);
+        self::assertSame(ProvenanceType::Hypothesis, $model->provenance->type);
+    }
+
+    public function testClaudeHaiku45NoteMatchesExactlyWhatTheSourceStates(): void
+    {
+        self::assertSame(
+            'Claude Haiku 4.5 est un modèle propriétaire : Anthropic ne publie ni son '
+            . 'architecture, ni son nombre de paramètres, ni l\'énergie consommée par requête. '
+            . 'EcoLogits 0.11.1, fichier models.json, entrée « claude-haiku-4-5-20251001 » : '
+            . 'architecture dense, "parameters": {"min": 10, "max": 35} (milliards), '
+            . 'avertissement "model-arch-not-released" (architecture non publiée, donc '
+            . 'estimation). Modèle supposé dense : la même valeur sert de paramètres actifs et '
+            . 'totaux. La valeur retenue ici (10 milliards) est la borne basse, la plus '
+            . 'conservatrice ; la borne haute (35 milliards, 3,5 fois plus) donne environ 2 fois '
+            . 'plus d\'énergie par token dans la seule régression EcoLogits ((8,91e-5 × 35 + '
+            . '1,43e-3) / (8,91e-5 × 10 + 1,43e-3) ≈ 1,96). Avec le modèle COMPLET, la borne '
+            . 'haute augmente aussi la mémoire requise (de 6 à 21 Go), mais le modèle tient '
+            . 'toujours sur une seule carte GPU : l\'énergie totale n\'est multipliée que par '
+            . 'environ 1,87.',
+            LanguageModel::claudeHaiku45()->provenance->note
+        );
+    }
+
+    public function testAllReturnsTenModels(): void
+    {
+        self::assertCount(10, LanguageModel::all());
     }
 
     public function testEachModelFromAllCarriesANonEmptyProvenance(): void

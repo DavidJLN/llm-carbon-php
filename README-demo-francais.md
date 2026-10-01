@@ -70,7 +70,8 @@ ainsi que l'écart total et sa décomposition.
 Le détail chiffré de chaque étape des deux modèles est affiché sur la page,
 sous les résultats, ainsi que deux tableaux comparatifs à égalité des autres
 paramètres : par zone d'hébergement (France, Europe, États-Unis, Monde) et par
-modèle du catalogue (Llama 3.1 70B, GPT-4, GPT-4o, Qwen3-235B-A22B) — ce
+modèle du catalogue (Llama 3.1 70B, GPT-4, GPT-4o, Qwen3-235B-A22B, Kimi K2,
+Mistral Large 2, Grok-1, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5) — ce
 second tableau affiche aussi le nombre de cartes GPU requises et l'écart
 (total, dont serveur, dont cartes) par modèle. Le facteur d'émission français a
 une double attribution : [Base Empreinte de
@@ -97,9 +98,13 @@ totaux, comme Llama 3.1 70B), la fabrique `LanguageModel::dense()` pose cette
 La plupart des valeurs du catalogue sont mesurées et publiées par leur source
 (badge vert « ✓ Mesuré et publié »), y compris **Qwen3-235B-A22B** (Alibaba),
 un modèle ouvert dont l'équipe Qwen publie officiellement les 235 milliards de
-paramètres totaux et les 22 milliards de paramètres activés par token. Les
-deux exceptions concernent les modèles OpenAI (badge orange « ⚠ Hypothèse »),
-dont l'architecture n'est jamais publiée :
+paramètres totaux et les 22 milliards de paramètres activés par token,
+**Kimi K2** (Moonshot AI : 1 000 milliards au total, 32 milliards actifs),
+**Mistral Large 2** (123 milliards, dense) et **Grok-1** (xAI : 314 milliards,
+25 % actifs, soit 78,5 milliards — un modèle de base de 2023, *pas* le Grok
+actuellement servi par xAI, dont les paramètres ne sont pas publiés). Les
+exceptions concernent les modèles OpenAI et Anthropic (badge orange
+« ⚠ Hypothèse »), dont l'architecture n'est jamais publiée :
 
 - **GPT-4** — paramètres actifs (176 milliards retenus) : suit la méthode
   d'EcoLogits pour les modèles propriétaires — à partir d'une architecture
@@ -120,6 +125,14 @@ dont l'architecture n'est jamais publiée :
   paramètres actifs ; la borne haute (132 milliards, x3 exactement) multiplie
   l'énergie par token de la régression par environ 2,47, et l'énergie
   **totale** du modèle complet par environ 2,40 seulement.
+- **Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5** — Anthropic ne
+  publie ni l'architecture, ni le nombre de paramètres, ni l'énergie par
+  requête. Les valeurs viennent du jeu de données EcoLogits 0.11.1
+  (avertissement `model-arch-not-released`), borne basse retenue : Sonnet
+  4.6, 44 à 132 milliards actifs / 440 au total (même fourchette que GPT-4o :
+  x2,47 sur la régression, x2,40 sur l'énergie totale) ; Opus 4.8, 67 à 200
+  milliards actifs / 670 au total (x2,60, x2,55) ; Haiku 4.5, supposé dense,
+  10 à 35 milliards (x1,96, x1,87 — toujours une seule carte GPU).
 
 **Une fourchette d'entrée n'est pas une fourchette de sortie.** Les deux
 exemples ci-dessus (x3 en paramètres actifs → x2,8/x2,5 sur la régression
